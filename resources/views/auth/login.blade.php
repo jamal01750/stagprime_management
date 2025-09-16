@@ -6,6 +6,7 @@
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
         <title>Login | StagPrime Cost Management</title>
+        <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
 
     </head>
     <body>
@@ -38,13 +39,13 @@
                 Login
             </button>
         </form>
-        <!-- <p class="mt-6 text-center text-gray-600 text-sm">
+        <p class="mt-6 text-center text-gray-600 text-sm">
             @if (Route::has('password.request'))
                 <a class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" href="{{ route('password.request') }}">
                     {{ __('Forgot your password?') }}
                 </a>
             @endif
-        </p> -->
+        </p>
     </div>
 </div>
         

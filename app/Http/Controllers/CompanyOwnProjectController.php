@@ -26,12 +26,14 @@ class CompanyOwnProjectController extends Controller
             'project_name' => 'required|string|max:255',
             'start_date' => 'required|date',
             'initial_amount' => 'required|numeric|min:0',
+            'description' => ['nullable', 'string', 'not_regex:/<[^>]*>|<script\b[^>]*>(.*?)<\/script>/i'],
         ]);
     
         $project = new CompanyProject();
         $project->project_name = $request->input('project_name');
         $project->start_date = $request->input('start_date');
         $project->initial_amount = $request->input('initial_amount');
+        $project->description = $request->input('description');
         $project->save();
 
         return redirect()->back()->with('success', 'Project created successfully!');

@@ -36,6 +36,10 @@
                         <p class="mt-2 text-gray-600">@yield('heading')</p>
                     </div>
 
+                    <div class="flex items-center gap-4 text-white bg-green-600 border border-gray-200 rounded-full px-4 py-2">
+                        <p><a href="{{route('notifications.index')}}">Notification</a></p>
+                    </div>
+
                     @auth
                         <div class="relative">
                             <button onclick="toggleDropdown()" 

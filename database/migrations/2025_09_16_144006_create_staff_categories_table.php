@@ -11,12 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('company_projects', function (Blueprint $table) {
+        Schema::create('staff_categories', function (Blueprint $table) {
             $table->id();
-            $table->string('project_name');
-            $table->date('start_date');
-            $table->decimal('initial_amount', 10, 2)->default(0.00);
-            $table->text('description')->nullable();
+            $table->string('category')->unique()->comment('Name of the staff category');
             $table->timestamps();
         });
     }
@@ -26,6 +23,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('company_projects');
+        Schema::dropIfExists('staff_categories');
     }
 };

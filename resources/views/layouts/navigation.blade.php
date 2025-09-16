@@ -130,6 +130,39 @@
                 </ul>
             </li>
 
+            <!-- Staff Salary -->
+            <li>
+                <button 
+                    @click="toggleMenu('staff')"
+                    class="flex justify-between text-left items-center w-full px-3 py-2 rounded text-gray-700 font-medium hover:bg-blue-100 focus:outline-none"
+                >
+                    <span>Staff Salary</span>
+                    <svg :class="{'rotate-90': openMenu.staff}" class="w-4 h-4 transform transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                </button>
+                <ul x-show="openMenu.staff" x-transition class="mt-1 ml-4 space-y-1 border-l border-gray-300 pl-3">
+                    <li>
+                        <a href="{{ route('staff.create') }}" :class="navActive('staff.create')"
+                            class="block px-3 py-2 rounded hover:bg-green-100">
+                                Add staff
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ route('staff.salary.list') }}" :class="navActive('staff.salary.list')"
+                            class="block px-3 py-2 rounded hover:bg-green-100">
+                                Salary List
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ route('staff.report') }}" :class="navActive('staff.report')"
+                            class="block px-3 py-2 rounded hover:bg-green-100">
+                                Report
+                        </a>
+                    </li>
+                </ul>
+            </li>
+
             <!-- Office Offline Cost -->
             <li>
                 <button 
@@ -316,6 +349,7 @@
                 registration: false,
                 studentLists: false,
                 internLists: false,
+                staff:false,
                 offline: false,
                 online: false,
                 loan: false,
@@ -337,6 +371,9 @@
                 'internship.list.running': ['office', 'internLists'],
                 'internship.list.expire': ['office', 'internLists'],
                 'internship.registration.lists': ['office'],
+                'staff.create': ['staff'],
+                'staff.salary.list': ['staff'],
+                'staff.report': ['staff'],
                 'offline.cost.create': ['offline'],
                 'offline.cost.report': ['offline'],
                 'online.cost.create': ['online'],

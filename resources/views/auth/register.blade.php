@@ -6,6 +6,7 @@
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
         <title>Register | StagPrime Cost Management</title>
+        <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
 
     
     </head>

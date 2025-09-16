@@ -9,21 +9,28 @@ use App\Http\Controllers\CompanyOwnProjectController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\InternshipController;
 use App\Http\Controllers\LoanAndInstallmentController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\RevenueAndTargetController;
 use App\Http\Controllers\OfflineCostController;
 use App\Http\Controllers\OnlineCostController;
+use App\Http\Controllers\StaffSalaryController;
 use App\Http\Controllers\StudentController;
 
-// Route::get('/dashboard', [DashboardController::class, 'index'])->middleware(['auth', 'verified'])->name('dashboard');
-Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+Route::get('/dashboard', [DashboardController::class, 'index'])->middleware(['auth', 'verified'])->name('dashboard');
 
-
+Route::middleware('auth')->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('home');
     Route::get('/yearlyreports', [DashboardController::class, 'index']
     )->name('yearlyreports');
     Route::post('/yearlysummary/pdf', [DashboardController::class, 'downloadPDF']
     )->name('yearlysummary.downloadpdf');
+
+
+
+    // Notification Routes
+    Route::get('/notifications', [NotificationController::class, 'index'])
+    ->name('notifications.index');
 
 
 
@@ -122,6 +129,28 @@ Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard
         )->name('internship.update');
 
 
+
+    // Staff salary Management    
+    
+    // Staff Creation
+    Route::get('/staff/create', [StaffSalaryController::class, 'createStaff']
+    )->name('staff.create');
+    // Staff Category Creation
+    Route::post('/staff/category', [StaffSalaryController::class, 'createStaffCategory']
+    )->name('staff.category.create');
+    // Staff store
+    Route::post('/staff/store', [StaffSalaryController::class, 'storeStaff']
+    )->name('staff.store');
+    // Staff Salary List
+    Route::get('/staff/salary/list', [StaffSalaryController::class, 'staffSalaryList']
+    )->name('staff.salary.list');
+    // Staff Salary Report
+    Route::get('/staff/salary/report', [StaffSalaryController::class, 'staffSalaryReport']
+    )->name('staff.report');
+    // Staff Salary Update
+    Route::put('/staff/salary/update/{id}', [StaffSalaryController::class, 'updateStaffSalary']
+    )->name('staff.salary.update');
+    
 
     // Office Offline Cost Management
 
@@ -253,6 +282,12 @@ Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard
 
 
 
+
+
+
+
+
+
     
     // Revenue and Target Management
     Route::get('/revenueandtarget', [RevenueAndTargetController::class, 'index']
@@ -264,20 +299,13 @@ Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard
 
 
     
-
-    
-
-
-    
-
-
-
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-// Route::middleware('auth')->group(function () {
-// });
+});
+
+
 
 // Protected Admin Routes
 Route::middleware(['auth', 'role:admin'])->group(function () {
@@ -287,5 +315,6 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::post('/admin/users', [AdminUserController::class, 'store'])->name('admin.users.store');
     Route::delete('/admin/users/{user}', [AdminUserController::class, 'destroy'])->name('admin.users.destroy');
 });
+
 
 require __DIR__.'/auth.php';

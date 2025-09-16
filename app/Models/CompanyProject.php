@@ -10,6 +10,7 @@ class CompanyProject extends Model
         'project_name',
         'start_date',
         'initial_amount',
+        'description',
     ];
 
     

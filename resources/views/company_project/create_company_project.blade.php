@@ -34,6 +34,14 @@
                 <label class="block text-sm font-medium text-gray-700">Initial Invest Amount</label>
                 <input type="number" name="initial_amount" step="0.01" class="w-full border-2 border-blue-600 rounded pl-2" required>
             </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Cost Description</label>
+                <textarea name="description" rows="3" 
+                    class="w-full border border-gray-300 rounded-lg shadow-sm px-3 py-2
+                           focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+                           text-gray-900">
+                </textarea>
+            </div>
             <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 font-medium">Create Project</button>
         </form>
     </div>
