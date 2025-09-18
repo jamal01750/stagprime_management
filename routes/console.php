@@ -1,9 +1,12 @@
 <?php
 
+// use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Support\Facades\Schedule;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\Schedule; // Add this import
 use Illuminate\Support\Facades\Log;
+use App\Models\Staff;
+use App\Models\StaffSalary;
 
 Artisan::command('clear:cache', function () {
     $this->call('cache:clear');
@@ -20,11 +23,6 @@ Artisan::command('optimize:clear', function () {
     $this->info('Application optimized and caches cleared!');
 })->purpose('Clear all caches and optimize the application');
 
-// Artisan::command('log:clear', function () {
-//     Log::getLogger()->clear();
-//     $this->info('Log files cleared!');
-// })->purpose('Clear the log files');
-
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
@@ -33,3 +31,19 @@ Artisan::command('inspire', function () {
 Schedule::command('notifications:generate-offline')
     ->everyMinute()
     ->timezone('Asia/Dhaka');
+
+// Auto-generate StaffSalary on 1st of every month at 1:00 AM
+Schedule::call(function () {
+    $staffList = Staff::all();
+    foreach ($staffList as $staff) {
+        StaffSalary::firstOrCreate(
+            [
+                'staff_id'    => $staff->id,
+                'salary_date' => now()->startOfMonth()->day(10)->toDateString(),
+            ],
+            [
+                'amount' => $staff->amount,
+            ]
+        );
+    }
+})->monthlyOn(1, '01:00')->timezone('Asia/Dhaka');

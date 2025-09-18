@@ -69,10 +69,6 @@
                             </div>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700">Salary Date</label>
-                            <input type="date" name="salary_date" class="mt-1 block w-full border-2 border-blue-600 focus:border-blue-700 focus:ring-blue-700 rounded bg-white text-gray-900" required>
-                        </div>
-                        <div>
                             <label class="block text-sm font-medium text-gray-700">Note</label>
                             <textarea name="description" rows="3" class="mt-1 block w-full border-2 border-blue-600 focus:border-blue-700 focus:ring-blue-700 rounded bg-white text-gray-900 pl-[5px]"></textarea>
                                 @if ($errors->has('description'))

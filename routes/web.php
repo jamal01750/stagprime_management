@@ -14,6 +14,7 @@ use App\Http\Controllers\RoleController;
 use App\Http\Controllers\RevenueAndTargetController;
 use App\Http\Controllers\OfflineCostController;
 use App\Http\Controllers\OnlineCostController;
+use App\Http\Controllers\ProductController;
 use App\Http\Controllers\StaffSalaryController;
 use App\Http\Controllers\StudentController;
 
@@ -132,6 +133,9 @@ Route::middleware('auth')->group(function () {
 
     // Staff salary Management    
     
+    // Staff Summary
+    Route::get('/staff/summary', [StaffSalaryController::class, 'index']
+    )->name('staff.summary');
     // Staff Creation
     Route::get('/staff/create', [StaffSalaryController::class, 'createStaff']
     )->name('staff.create');
@@ -144,9 +148,18 @@ Route::middleware('auth')->group(function () {
     // Staff Salary List
     Route::get('/staff/salary/list', [StaffSalaryController::class, 'staffSalaryList']
     )->name('staff.salary.list');
+    // Staff Salary Payment
+    Route::post('/staff/salaries/pay/{id}', [StaffSalaryController::class, 'paySalary']
+    )->name('staff.salaries.pay');
+    // Staff Salary Mark Paid
+    Route::post('/staff/salaries/mark-paid/{id}', [StaffSalaryController::class, 'markPaid']
+    )->name('staff.salaries.markPaid');
     // Staff Salary Report
     Route::get('/staff/salary/report', [StaffSalaryController::class, 'staffSalaryReport']
     )->name('staff.report');
+    // Staff Salary Report by type
+    Route::get('/staff/salary/report/{type}', [StaffSalaryController::class, 'staffSalaryReport']
+    )->name('staff.salary.report');
     // Staff Salary Update
     Route::put('/staff/salary/update/{id}', [StaffSalaryController::class, 'updateStaffSalary']
     )->name('staff.salary.update');
@@ -218,6 +231,38 @@ Route::middleware('auth')->group(function () {
 
 
 
+    // Product Management
+
+    // Product Summary
+    Route::get('/product/summary', [ProductController::class, 'index'])
+    ->name('product.summary');
+    //add Product
+    Route::get('/product/add', [ProductController::class, 'create'])
+    ->name('product.add');
+    // Product Category
+    Route::post('/product/category/store', [ProductController::class, 'storeCategory'])
+    ->name('product.category.store');
+    // Store Product
+    Route::post('/product/store', [ProductController::class, 'store'])
+    ->name('product.store');
+    // Sell Product
+    Route::get('/product/sell', [ProductController::class, 'sell'])
+    ->name('product.sell');
+    // Store Sold Product
+    Route::post('/product/sell/store', [ProductController::class, 'storeSoldProduct'])
+    ->name('product.sell.store');
+    // Loss Product
+    Route::get('/product/loss', [ProductController::class, 'loss'])
+    ->name('product.loss');
+    // Store Loss Product
+    Route::post('/product/loss/store', [ProductController::class, 'storeLossProduct'])
+    ->name('product.loss.store');
+    // Product Report
+    Route::get('/product/report', [ProductController::class, 'report'])
+    ->name('product.report');
+
+    
+    
     // Company Own Project Management
 
     // Create Company Own Project

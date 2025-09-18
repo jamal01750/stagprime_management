@@ -13,6 +13,13 @@ return new class extends Migration
     {
         Schema::create('staff_salaries', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('staff_id')->constrained('staff')->onDelete('cascade');
+            $table->date('salary_date'); // For which month
+            $table->decimal('amount', 12, 2);
+            $table->enum('status', ['Unpaid', 'Paid'])->default('Unpaid');
+            $table->date('paid_date')->nullable();
+            $table->string('payment_method')->nullable();
+            $table->text('note')->nullable();
             $table->timestamps();
         });
     }

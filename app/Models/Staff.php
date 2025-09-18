@@ -11,7 +11,6 @@ class Staff extends Model
         'designation',
         'category_id',
         'join_date',
-        'salary_date',
         'amount',
         'description',
     ];

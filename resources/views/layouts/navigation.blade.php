@@ -143,6 +143,12 @@
                 </button>
                 <ul x-show="openMenu.staff" x-transition class="mt-1 ml-4 space-y-1 border-l border-gray-300 pl-3">
                     <li>
+                        <a href="{{ route('staff.summary') }}" :class="navActive('staff.summary')"
+                            class="block px-3 py-2 rounded hover:bg-green-100">
+                                Summary 
+                        </a>
+                    </li>
+                    <li>
                         <a href="{{ route('staff.create') }}" :class="navActive('staff.create')"
                             class="block px-3 py-2 rounded hover:bg-green-100">
                                 Add staff
@@ -253,6 +259,53 @@
                 </ul>
             </li>
 
+            <!-- Product Management -->
+            <li>
+                
+                <button 
+                    @click="toggleMenu('product')"
+                    class="flex justify-between text-left items-center w-full px-3 py-2 rounded text-gray-700 font-medium hover:bg-blue-100 focus:outline-none"
+                >
+                    <span>Product Management</span>
+                    <svg :class="{'rotate-90': openMenu.product}" class="w-4 h-4 transform transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                </button>
+                <ul x-show="openMenu.product" x-transition class="mt-1 ml-4 space-y-1 border-l border-gray-300 pl-3">
+                    
+                    <li>
+                        <a href="{{ route('product.summary') }}" :class="navActive('product.summary')"
+                            class="block px-3 py-2 rounded hover:bg-green-100">
+                                Summary
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ route('product.add') }}" :class="navActive('product.add')"
+                            class="block px-3 py-2 rounded hover:bg-green-100">
+                                Add Product
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ route('product.sell') }}" :class="navActive('product.sell')"
+                            class="block px-3 py-2 rounded hover:bg-green-100">
+                                Sell Product
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ route('product.loss') }}" :class="navActive('product.loss')"
+                            class="block px-3 py-2 rounded hover:bg-green-100">
+                                Loss Product
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ route('product.report') }}" :class="navActive('product.report')"
+                            class="block px-3 py-2 rounded hover:bg-green-100">
+                                Report 
+                        </a>
+                    </li>
+                </ul>
+            </li>
+
             <!-- Company Own Projects -->
             <li>
                 
@@ -353,6 +406,7 @@
                 offline: false,
                 online: false,
                 loan: false,
+                product: false,
                 company: false,
                 client: false,
                 // Add other submenu keys here
@@ -371,6 +425,7 @@
                 'internship.list.running': ['office', 'internLists'],
                 'internship.list.expire': ['office', 'internLists'],
                 'internship.registration.lists': ['office'],
+                'staff.summary': ['staff'],
                 'staff.create': ['staff'],
                 'staff.salary.list': ['staff'],
                 'staff.report': ['staff'],
@@ -381,6 +436,11 @@
                 'loan.create': ['loan'],
                 'installment.create': ['loan'],
                 'loan.report': ['loan'],
+                'product.summary': ['product'],
+                'product.add': ['product'],
+                'product.sell': ['product'],
+                'product.loss': ['product'],
+                'product.report': ['product'],
                 'company.project.create': ['company'],
                 'company.project.transaction.add': ['company'],
                 'company.project.list': ['company'],
