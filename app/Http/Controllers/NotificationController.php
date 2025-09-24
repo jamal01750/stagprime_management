@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\OfflinePaymentNotification;
-use Illuminate\Http\Request;
+use App\Models\PriorityNotification;
 
 class NotificationController extends Controller
 {
@@ -27,6 +27,12 @@ class NotificationController extends Controller
             ->latest()
             ->paginate(5, ['*'], 'green_page');
 
-        return view('notifications.index', compact('red','yellow','green'));
+        // ✅ Add priority notifications
+        $priority = PriorityNotification::with('product')
+            ->where('is_active', true)
+            ->latest()
+            ->paginate(5, ['*'], 'priority_page');
+
+        return view('notifications.index', compact('red','yellow','green','priority'));
     }
 }

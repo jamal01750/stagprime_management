@@ -16,10 +16,12 @@ return new class extends Migration
             $table->unsignedInteger('year');
             $table->unsignedInteger('month');
             $table->unsignedBigInteger('category_id');
-            $table->date('activate_date');
+            $table->date('activate_date')->nullable();
             $table->date('expire_date')->nullable();
+            $table->enum('activate_type', ['dollar', 'taka'])->default('dollar');
+            $table->decimal('activate_cost', 10, 2)->nullable();
             $table->enum('amount_type', ['dollar', 'taka'])->default('dollar');
-            $table->decimal('amount', 10, 2);
+            $table->decimal('amount', 10, 2)->nullable();
             $table->string('description')->nullable();
             $table->date('paid_date')->nullable();
             $table->enum('status', ['paid', 'unpaid'])->default('unpaid');

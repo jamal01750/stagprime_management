@@ -65,13 +65,6 @@
                                 </select>
                             </div>
                         </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Last Payment Date</label>
-                            <input type="date" name="last_date" class="mt-1 block w-full border-2 border-blue-600 focus:border-blue-700 focus:ring-blue-700 rounded bg-white text-gray-900" required>
-                                @if ($errors->has('last_date'))
-                                <span class="text-red-600 text-xs">{{ $errors->first('last_date') }}</span>
-                            @endif
-                        </div>
                         
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Amount</label>
@@ -79,9 +72,18 @@
                                 <input type="number" name="amount" step="0.01" class="mt-1 block w-full rounded bg-white text-gray-900 border-2 border-blue-600 focus:border-blue-700 focus:ring-blue-700 pl-[5px]" required>
                             </div>
                             @if ($errors->has('amount'))
-                                <span class="text-red-600 text-xs">{{ $errors->first('amount') }}</span>
+                            <span class="text-red-600 text-xs">{{ $errors->first('amount') }}</span>
                             @endif
                         </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Last Payment Date</label>
+                            <input type="date" name="last_date" class="mt-1 block w-full border-2 border-blue-600 focus:border-blue-700 focus:ring-blue-700 rounded bg-white text-gray-900">
+                                @if ($errors->has('last_date'))
+                                <span class="text-red-600 text-xs">{{ $errors->first('last_date') }}</span>
+                            @endif
+                        </div>
+
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Note</label>
                             <textarea name="description" rows="3" class="mt-1 block w-full border-2 border-blue-600 focus:border-blue-700 focus:ring-blue-700 rounded bg-white text-gray-900 pl-[5px]"></textarea>

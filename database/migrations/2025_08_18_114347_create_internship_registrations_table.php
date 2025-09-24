@@ -26,6 +26,9 @@ return new class extends Migration
             $table->date('admission_date');
             $table->decimal('pay_amount', 10, 2);
             $table->decimal('total_paid', 10, 2)->default(0);
+            $table->date('paid_date')->nullable();
+            $table->date('paid_date2')->nullable();
+            $table->date('paid_date3')->nullable();
             $table->text('description')->nullable();
             $table->enum('payment_status', ['Full paid', 'Partial'])->default('Partial');
             $table->enum('active_status', ['Running', 'Expired'])->default('Running');

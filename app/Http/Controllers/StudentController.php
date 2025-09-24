@@ -8,6 +8,7 @@ use App\Models\Student;
 use Illuminate\Routing\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use App\Models\StudentPayment;
 
 
 class StudentController extends Controller
@@ -87,6 +88,54 @@ class StudentController extends Controller
         return redirect()->back()->with('success', "Student Registered Successfully. ID: {$studentId}");
     }
 
+    // Student Payment
+    public function payment(){
+        $students = Student::where('payment_status','Unpaid')->orderBy('admission_date','asc')->get();
+        return view('students.payment_form', [
+            'students' => $students,
+        ]);
+    }
+
+    // Store Student Payment
+    public function paymentStore(Request $request)
+    {
+        $request->validate([
+            'student_id' => 'required|exists:students,id',
+            'pay_amount' => 'required|numeric|min:1',
+            'due_amount' => 'required|numeric',
+            'pay_date' => 'required|date',
+            'next_date' => 'nullable|date',
+        ]);
+
+        $student = Student::findOrFail($request->student_id);
+
+        // --- Insert into student_payments table ---
+        StudentPayment::create([
+            'student_id' => $student->id,
+            'pay_amount' => $request->pay_amount,
+            'due_amount' => $request->due_amount,
+            'pay_date' => $request->pay_date,
+            'next_date' => $request->next_date,
+        ]);
+
+        // --- Update student table ---
+        // $student->paid_amount += $request->pay_amount;
+        $student->due_amount = $request->due_amount;
+        $student->payment_due_date = $request->next_date;
+
+        if ($student->due_amount <= 0) {
+            $student->payment_status = 'Paid';
+            $student->due_amount = 0;
+        } else {
+            $student->payment_status = 'Unpaid';
+        }
+
+        $student->save();
+
+        return redirect()->back()->with('success', 'Payment recorded successfully for ' . $student->student_name);
+    }
+
+
     // Running Student Lists
     public function runningList(){
         $students = Student::where('active_status','Running')->orderBy('admission_date','asc')->get();
@@ -100,11 +149,23 @@ class StudentController extends Controller
     public function paymentUpdate($id)
     {
         $student = Student::findOrFail($id);
-        $student->payment_status = 'Paid';
+
+        // Record payment in student_payments (insert new row, not updateOrCreate)
+        StudentPayment::create([
+            'student_id' => $student->id,
+            'pay_amount' => $student->due_amount,   // pay the full remaining due
+            'due_amount' => 0,
+            'pay_date' => now('Asia/Dhaka')->toDateString(),
+            'next_date' => null,
+        ]);
+
+        // Update student table
         $student->due_amount = 0;
+        $student->payment_status = 'Paid';
         $student->payment_due_date = null;
         $student->save();
-        return redirect()->route('student.list.running')->with('success', 'Payment status updated to Paid.');  
+
+        return redirect()->route('student.list.running')->with('success', 'Payment status updated to Paid.');
     }
 
     // Student Active Status Update
@@ -117,9 +178,9 @@ class StudentController extends Controller
     }
 
     // Student Details
-    public function studentDetails(Request $request, $student_id)
+    public function studentDetails($id)
     {
-        $student = Student::where('student_id', $student_id)->first();
+        $student = Student::findOrFail($id);
         $batches = Batch::all();
         $courses = Course::all();   
         if (!$student) {
@@ -146,7 +207,7 @@ class StudentController extends Controller
     }
 
     // Student Individual Update
-    public function update(Request $request, Student $student)
+    public function updateStudent(Request $request, Student $student)
     {
         $request->validate([
             'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
@@ -182,10 +243,11 @@ class StudentController extends Controller
             $imagePath = $request->file('image')->storeAs('students', $fileName, 'public');
 
             $student->image = $imagePath;
+            
         }
 
         // ---- Update only provided fields ----
-        $student->fill($request->except(['image']));
+        $student->fill($request->except(['image','student_id'])); // Exclude image and student_id from mass assignment
 
         $student->save();
 

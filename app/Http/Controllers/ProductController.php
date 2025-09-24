@@ -79,6 +79,9 @@ class ProductController extends Controller
             'quantity' => $request->quantity,
             'amount' => $request->amount,
             'description' => $request->description,
+            'paid_date' => now('Asia/Dhaka')->toDateString(),
+            'status' => 'paid', // Default status
+            // 'due_date' => now('Asia/Dhaka')->addDays(7)->toDateString(), // Default due date
         ]);
 
         // Decrement the quantity in the product category
@@ -158,14 +161,12 @@ class ProductController extends Controller
             $year  = $today->year;
         }
 
-        // --- Summary and details logic stays the same ---
-        // (same as in my last version, only difference is date range)
-        
+    
         // Main summary
-        $categories = \App\Models\ProductCategory::with('products')->get()->map(function ($cat) use ($start, $end) {
-            $sales = \App\Models\ProductSale::where('product_category_id', $cat->id)
+        $categories = ProductCategory::with('products')->get()->map(function ($cat) use ($start, $end) {
+            $sales = ProductSale::where('product_category_id', $cat->id)
                 ->whereBetween('created_at', [$start, $end])->get();
-            $losses = \App\Models\ProductLoss::where('product_category_id', $cat->id)
+            $losses = ProductLoss::where('product_category_id', $cat->id)
                 ->whereBetween('created_at', [$start, $end])->get();
 
             return [
@@ -196,11 +197,11 @@ class ProductController extends Controller
             $category = \App\Models\ProductCategory::findOrFail($categoryId);
             $categoryName = $category->name;
 
-            $sales = \App\Models\ProductSale::where('product_category_id', $categoryId)
+            $sales = ProductSale::where('product_category_id', $categoryId)
                 ->whereBetween('created_at', [$start, $end])->get();
-            $losses = \App\Models\ProductLoss::where('product_category_id', $categoryId)
+            $losses = ProductLoss::where('product_category_id', $categoryId)
                 ->whereBetween('created_at', [$start, $end])->get();
-            $products = \App\Models\Product::where('product_category_id', $categoryId)->get();
+            $products = Product::where('product_category_id', $categoryId)->get();
 
             $details = collect();
 

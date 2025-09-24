@@ -28,7 +28,7 @@
                     <div>
                         <label class="block text-sm font-medium">Current Image</label>
                         @if($student->image)
-                            <img src="{{ asset('storage/' . $student->image) }}" class="h-24 w-24 object-cover rounded mb-2">
+                            <img src="{{ asset('storage/'.$student->image) }}" class="h-24 w-24 object-cover rounded mb-2">
                         @else
                             <p class="text-gray-500 text-sm">No image uploaded</p>
                         @endif
@@ -90,27 +90,22 @@
 
                     <div>
                         <label class="block text-sm font-medium">Admission Date</label>
-                        <input type="date" name="admission_date" value="{{ old('admission_date', $student->admission_date) }}" class="mt-1 block w-full border-2 border-blue-600 rounded" required>
+                        <input type="date" name="admission_date" value="{{ old('admission_date', $student->admission_date) }}" class="mt-1 block w-full border-2 border-blue-600 rounded" readonly>
                     </div>
 
                     <div>
                         <label class="block text-sm font-medium">Total Fee</label>
-                        <input type="number" name="total_fee" value="{{ old('total_fee', $student->total_fee) }}" step="0.01" class="mt-1 block w-full border-2 border-blue-600 rounded" required>
+                        <input type="number" name="total_fee" value="{{ old('total_fee', $student->total_fee) }}" step="0.01" class="mt-1 block w-full border-2 border-blue-600 rounded" readonly>
                     </div>
-
-                    <div>
-                        <label class="block text-sm font-medium">Paid Amount</label>
-                        <input type="number" name="paid_amount" value="{{ old('paid_amount', $student->paid_amount) }}" step="0.01" class="mt-1 block w-full border-2 border-blue-600 rounded" required>
-                    </div>
-
+                
                     <div>
                         <label class="block text-sm font-medium">Due Amount</label>
-                        <input type="number" name="due_amount" value="{{ old('due_amount', $student->due_amount) }}" step="0.01" class="mt-1 block w-full border-2 border-blue-600 rounded" required>
+                        <input type="number" name="due_amount" value="{{ old('due_amount', $student->due_amount) }}" step="0.01" class="mt-1 block w-full border-2 border-blue-600 rounded" readonly>
                     </div>
 
                     <div>
                         <label class="block text-sm font-medium">Payment Due Date</label>
-                        <input type="date" name="payment_due_date" value="{{ old('payment_due_date', $student->payment_due_date) }}" class="mt-1 block w-full border-2 border-blue-600 rounded">
+                        <input type="date" name="payment_due_date" value="{{ old('payment_due_date', $student->payment_due_date) }}" class="mt-1 block w-full border-2 border-blue-600 rounded" readonly>
                     </div>
 
                     <div>
@@ -120,10 +115,11 @@
 
                     <div>
                         <label class="block text-sm font-medium">Payment Status</label>
-                        <select name="payment_status" class="mt-1 block w-full border-2 border-blue-600 rounded">
+                        <input type="text" name="payment_status" value="{{ old('payment_status', $student->payment_status) }}" class="mt-1 block w-full border-2 border-blue-600 rounded" readonly>
+                        <!-- <select name="payment_status" class="mt-1 block w-full border-2 border-blue-600 rounded" readonly>
                             <option value="Paid" {{ $student->payment_status == 'Paid' ? 'selected' : '' }}>Paid</option>
                             <option value="Unpaid" {{ $student->payment_status == 'Unpaid' ? 'selected' : '' }}>Unpaid</option>
-                        </select>
+                        </select> -->
                     </div>
 
                     <div>

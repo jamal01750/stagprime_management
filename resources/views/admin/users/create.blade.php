@@ -46,12 +46,15 @@
 
             <div>
                 <label class="block text-gray-700 font-medium mb-1">Role:</label>
-                <select name="role" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 bg-gray-50">
-                    <option>Select Role</option>
+                <select name="role" required class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 bg-gray-50">
+                    <option value="" disabled selected>Select Role</option>
                     @foreach($roles as $role)
-                        <option value="{{ $role-> role_name }}">{{ $role-> role_name }}</option>
+                        <option value="{{ $role->role_name }}">{{ $role->role_name }}</option>
                     @endforeach
                 </select>
+                @if($errors->has('role'))
+                    <p style="color:red">{{ $errors->first('role') }}</p>
+                @endif
             </div>
 
             <button type="submit" class="w-full bg-blue-600 text-white font-semibold py-2 rounded-lg hover:bg-blue-700 transition duration-200">

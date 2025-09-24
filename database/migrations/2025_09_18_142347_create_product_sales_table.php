@@ -19,6 +19,9 @@ return new class extends Migration
             $table->integer('quantity')->default(0);
             $table->decimal('amount', 10, 2)->default(0.00);
             $table->string('description')->nullable();
+            $table->date('due_date')->nullable();
+            $table->date('paid_date')->nullable();
+            $table->enum('status', ['paid', 'unpaid'])->default('unpaid');
             $table->timestamps();
         });
     }

@@ -32,18 +32,29 @@ Schedule::command('notifications:generate-offline')
     ->everyMinute()
     ->timezone('Asia/Dhaka');
 
-// Auto-generate StaffSalary on 1st of every month at 1:00 AM
+// Auto-generate StaffSalary on 1st of every month at 00:05 AM
 Schedule::call(function () {
     $staffList = Staff::all();
     foreach ($staffList as $staff) {
         StaffSalary::firstOrCreate(
             [
                 'staff_id'    => $staff->id,
-                'salary_date' => now()->startOfMonth()->day(10)->toDateString(),
+                'salary_date' => now()->startOfMonth()->day(7)->toDateString(),
             ],
             [
                 'amount' => $staff->amount,
             ]
         );
     }
-})->monthlyOn(1, '01:00')->timezone('Asia/Dhaka');
+})->monthlyOn(1, '00:05')->timezone('Asia/Dhaka');
+
+// Auto-generate MonthlyTarget on 1st of every month at 00:10 AM
+Schedule::command('target:generate')
+    ->monthlyOn(1, '00:10')
+    ->timezone('Asia/Dhaka')
+    ->onSuccess(function () {
+        Log::info('Monthly target generation completed successfully.');
+    })
+    ->onFailure(function () {
+        Log::error('Monthly target generation failed.');
+    });

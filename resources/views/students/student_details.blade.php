@@ -11,7 +11,7 @@
         <div class="flex flex-col md:flex-row items-center p-6 bg-gradient-to-r from-blue-500 to-indigo-600 text-white">
             <div class="flex-shrink-0">
                 @if($student->image)
-                    <img src="{{ asset('storage/' . $student->image) }}" 
+                    <img src="{{ asset('storage/'.$student->image) }}" 
                          alt="{{ $student->student_name }}" 
                          class="h-32 w-32 object-cover rounded-full border-4 border-white shadow">
                 @else
@@ -54,7 +54,7 @@
             <div>
                 <h3 class="text-lg font-semibold mb-2">Payment Info</h3>
                 <p><span class="font-semibold">Total Fee:</span> {{ number_format($student->total_fee, 2) }}</p>
-                <p><span class="font-semibold">Paid:</span> {{ number_format($student->paid_amount, 2) }}</p>
+                <!-- <p><span class="font-semibold">Paid:</span> {{ number_format($student->paid_amount, 2) }}</p> -->
                 <p><span class="font-semibold">Due:</span> 
                     <span class="{{ $student->due_amount > 0 ? 'text-red-600 font-bold' : 'text-green-600 font-bold' }}">
                         {{ number_format($student->due_amount, 2) }}

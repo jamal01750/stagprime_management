@@ -89,6 +89,10 @@
                             </li>
                         </ul>
                     </li>
+                    <!-- Student Payment form -->
+                    <li>
+                        <a href="{{ route('student.payment') }}" :class="navActive('student.payment')" class="block px-3 py-2 rounded hover:bg-green-100">Student Payment</a>
+                    </li>
                     <!-- Student Lists Nested Submenu -->
                     <li>
                         <button @click="toggleMenu('studentLists')" class="flex items-center w-full px-3 py-2 rounded transition hover:bg-blue-100 font-medium focus:outline-none">
@@ -381,12 +385,74 @@
                     </li>
                 </ul>
             </li>
+
+            <!-- Monthly Revenue & Target -->
+            <li>
+                
+                <button 
+                    @click="toggleMenu('target')"
+                    class="flex justify-between text-left items-center w-full px-3 py-2 rounded text-gray-700 font-medium hover:bg-blue-100 focus:outline-none"
+                >
+                    <span>Monthly Revenue & Target</span>
+                    <svg :class="{'rotate-90': openMenu.target}" class="w-4 h-4 transform transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                </button>
+                <ul x-show="openMenu.target" x-transition class="mt-1 ml-4 space-y-1 border-l border-gray-300 pl-3">
+                    
+                    <li>
+                        <a href="{{ route('target.summary') }}" :class="navActive('target.summary')"
+                            class="block px-3 py-2 rounded hover:bg-green-100">
+                                Summary
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ route('revenue.report') }}" :class="navActive('revenue.report')"
+                            class="block px-3 py-2 rounded hover:bg-green-100">
+                                Revenue Report
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ route('expense.report') }}" :class="navActive('expense.report')"
+                            class="block px-3 py-2 rounded hover:bg-green-100">
+                                Expense Report
+                        </a>
+                    </li>
+                </ul>
+            </li>
+
+            <!-- Office Priority Products/Projects -->
+            <li>
+                
+                <button 
+                    @click="toggleMenu('priority')"
+                    class="flex justify-between text-left items-center w-full px-3 py-2 rounded text-gray-700 font-medium hover:bg-blue-100 focus:outline-none"
+                >
+                    <span>Office Priority Products/Projects</span>
+                    <svg :class="{'rotate-90': openMenu.priority}" class="w-4 h-4 transform transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                </button>
+                <ul x-show="openMenu.priority" x-transition class="mt-1 ml-4 space-y-1 border-l border-gray-300 pl-3">
+                    
+                    <li>
+                        <a href="{{ route('priority.add') }}" :class="navActive('priority.add')"
+                            class="block px-3 py-2 rounded hover:bg-green-100">
+                                Add New
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ route('priority.list') }}" :class="navActive('priority.list')"
+                            class="block px-3 py-2 rounded hover:bg-green-100">
+                                List
+                        </a>
+                    </li>
+                </ul>
+            </li>
             
 
             <!-- Add other menus here, following the same nested pattern -->
             <li><a class="block px-3 py-2 rounded hover:bg-blue-100 text-gray-700 font-medium" href="{{route('admin.users.index')}}">User Settings</a></li>
-            <li><a class="block px-3 py-2 rounded hover:bg-blue-100 text-gray-700 font-medium" href="{{route('revenueandtarget')}}">Monthly Revenue & Target</a></li>
-            <li><a class="block px-3 py-2 rounded hover:bg-blue-100 text-gray-700 font-medium" href="#management">Office Priority Products/Projects</a></li>
             <li><a class="block px-3 py-2 rounded hover:bg-blue-100 text-gray-700 font-medium" href="#online">Reports & Analytics</a></li>
 
         </ul>
@@ -409,6 +475,9 @@
                 product: false,
                 company: false,
                 client: false,
+                target: false,
+                priority: false,
+                
                 // Add other submenu keys here
             },
             routeName: '{{ request()->route()->getName() }}',
@@ -448,6 +517,11 @@
                 'client.project.transaction.add': ['client'],
                 'client.debit.add': ['client'],
                 'client.project.list': ['client'],
+                'target.summary': ['target'],
+                'revenue.report': ['target'],
+                'expense.report': ['target'],
+                'priority.add': ['priority'],
+                'priority.list': ['priority'],
                 // Add other route names and their parent keys here
             },
             initMenu() {

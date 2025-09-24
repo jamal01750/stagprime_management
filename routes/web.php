@@ -14,6 +14,7 @@ use App\Http\Controllers\RoleController;
 use App\Http\Controllers\RevenueAndTargetController;
 use App\Http\Controllers\OfflineCostController;
 use App\Http\Controllers\OnlineCostController;
+use App\Http\Controllers\PriorityController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\StaffSalaryController;
 use App\Http\Controllers\StudentController;
@@ -72,6 +73,12 @@ Route::middleware('auth')->group(function () {
         )->name('student.internship.summary');
 
 
+        // Student Payment
+        Route::get('/student/payment', [StudentController::class, 'payment']
+        )->name('student.payment');
+        // Store Student Payment
+        Route::post('/student/payment/store', [StudentController::class, 'paymentStore']
+        )->name('student.payment.store');
         // Student Registration
         Route::get('/student-registration/new', [StudentController::class, 'newRegistration']
         )->name('student.registration');
@@ -97,7 +104,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/student/edit/{id}', [StudentController::class, 'editStudent']
         )->name('student.edit');
         // Student Individual Update
-        Route::put('/student/update/{id}', [StudentController::class, 'updateStudent']
+        Route::put('/student/update/{student}', [StudentController::class, 'updateStudent']
         )->name('student.update');
 
 
@@ -327,23 +334,46 @@ Route::middleware('auth')->group(function () {
 
 
 
-
-
-
-
-
-
-    
     // Revenue and Target Management
-    Route::get('/revenueandtarget', [RevenueAndTargetController::class, 'index']
-    )->name('revenueandtarget');
-    Route::post('/settarget', [RevenueAndTargetController::class, 'settarget']
-    )->name('settarget');
-    Route::get('/yearlysummary', [RevenueAndTargetController::class, 'index']
-    )->name('yearlysummary');
+
+    // Summary
+    Route::get('/target/summary', [RevenueAndTargetController::class, 'index']
+    )->name('target.summary');
+    // Revenue Report
+    Route::get('/revenue/report', [RevenueAndTargetController::class, 'revenueReport']
+    )->name('revenue.report');
+    // Expense Report
+    Route::get('/expense/report', [RevenueAndTargetController::class, 'expenseReport']
+    )->name('expense.report');
 
 
     
+    // Priority Management
+
+    // Add Priority
+    Route::get('/priority/add', [PriorityController::class, 'create'])
+    ->name('priority.add');
+    // Store Priority
+    Route::post('/priority/store', [PriorityController::class, 'store'])
+    ->name('priority.store');
+    // List Priorities
+    Route::get('/priority/list', [PriorityController::class, 'index'])
+    ->name('priority.list');
+    // Edit Priority
+    Route::get('/priority/edit/{priority}', [PriorityController::class, 'edit'])
+    ->name('priority.edit');
+    // Update Priority
+    Route::put('/priority/update/{priority}', [PriorityController::class, 'update'])
+    ->name('priority.update');
+    // Delete Priority
+    Route::delete('/priority/delete/{priority}', [PriorityController::class, 'destroy'])
+    ->name('priority.delete');
+    // Purchased Priority
+    Route::put('/priority/{priority}/purchase', [PriorityController::class, 'purchase'])
+    ->name('priority.purchase');
+
+
+    // Profile Management
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');

@@ -26,13 +26,13 @@ class StaffSalaryController extends Controller
         $paidCount   = $salaries->where('status', 'Paid')->count();
         $unpaidCount = $salaries->where('status', 'Unpaid')->count();
 
-        // Reminder: salary_date always 10th → show reminders 7 days before
-        $reminderDate = Carbon::createFromDate($year, $month, 10)->subDays(7)->toDateString();
+        // Reminder: salary_date always 7th → show reminders 7 days before
+        $reminderDate = Carbon::createFromDate($year, $month, 7)->subDays(7)->toDateString();
 
         $reminders = StaffSalary::with('staff')
             ->whereYear('salary_date', $year)
             ->whereMonth('salary_date', $month)
-            ->whereDate('salary_date', '=', Carbon::createFromDate($year, $month, 10))
+            ->whereDate('salary_date', '=', Carbon::createFromDate($year, $month, 7)->toDateString())
             ->where('status', 'Unpaid')
             ->get();
 

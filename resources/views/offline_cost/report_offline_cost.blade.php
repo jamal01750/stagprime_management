@@ -8,32 +8,49 @@
 
         <!-- Filter Form -->
         <div class="bg-white rounded shadow p-4 md:p-6 mt-6">
-            <form method="GET" action="{{ route('offline.cost.report') }}" class="flex space-x-4">
-                <div>
-                    <label class="block text-sm font-medium">Year</label>
-                    <select name="year" class="border rounded px-2 py-1">
-                        @for($y = now('Asia/Dhaka')->year; $y >= 2020; $y--)
-                            <option value="{{ $y }}" @selected($y == $year)>{{ $y }}</option>
-                        @endfor
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium">Month</label>
-                    <select name="month" class="border rounded px-2 py-1">
-                        @foreach(['January','February','March','April','May','June','July','August','September','October','November','December'] as $index => $monthName)
-                            <option value="{{ $index + 1 }}" @selected($index + 1 == $month)>{{ $monthName }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="flex items-end">
-                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Filter</button>
-                </div>
+            <form method="GET" class="flex flex-wrap items-center gap-4 mb-6">
+
+                {{-- Filter type --}}
+                <select name="filter_type" id="filter_type" onchange="toggleInputs()" class="border p-2 rounded">
+                    <option value="day"   {{ $filterType=='day'?'selected':'' }}>Day</option>
+                    <option value="month" {{ $filterType=='month'?'selected':'' }}>Month</option>
+                    <option value="year"  {{ $filterType=='year'?'selected':'' }}>Year</option>
+                    <option value="range" {{ $filterType=='range'?'selected':'' }}>Custom Range</option>
+                </select>
+
+                {{-- Day --}}
+                <input type="date" name="date" id="dateInput" value="{{ $date ?? '' }}"
+                    class="border p-2 rounded {{ $filterType!='day'?'hidden':'' }}">
+
+                {{-- Month --}}
+                <select name="month" id="monthInput" class="border p-2 rounded {{ $filterType!='month'?'hidden':'' }}">
+                    @for($m=1;$m<=12;$m++)
+                        <option value="{{ $m }}" {{ ($month==$m)?'selected':'' }}>
+                            {{ \Carbon\Carbon::create()->month($m)->format('F') }}
+                        </option>
+                    @endfor
+                </select>
+
+                {{-- Year --}}
+                <select name="year" id="yearInput" class="border p-2 rounded {{ !in_array($filterType,['month','year'])?'hidden':'' }}">
+                    @for($y=now()->year; $y>=2020; $y--)
+                        <option value="{{ $y }}" {{ ($year==$y)?'selected':'' }}>{{ $y }}</option>
+                    @endfor
+                </select>
+
+                {{-- Custom range --}}
+                <input type="date" name="start_date" id="startDateInput" value="{{ $startDate ?? '' }}"
+                    class="border p-2 rounded {{ $filterType!='range'?'hidden':'' }}">
+                <input type="date" name="end_date" id="endDateInput" value="{{ $endDate ?? '' }}"
+                    class="border p-2 rounded {{ $filterType!='range'?'hidden':'' }}">
+
+                <button class="px-4 py-2 bg-blue-600 text-white rounded">Filter</button>
             </form>
         </div>
 
         <!-- Expense List Table -->
         <div class="bg-white rounded shadow p-4 md:p-6 mt-6 overflow-x-auto">
-            <h2 class="text-lg font-semibold mb-4">Monthly Expense and Due Date List</h2>
+            <h2 class="text-lg font-semibold mb-4">Expense and Due Date List</h2>
             <table class="w-full border-collapse border border-gray-300">
                 <thead class="bg-gray-100">
                     <tr>
@@ -71,13 +88,37 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="text-center py-4 text-gray-500">No expenses found for this month.</td>
+                            <td colspan="6" class="text-center py-4 text-gray-500">No expenses found.</td>
                         </tr>
                     @endforelse
                 </tbody>
             </table>
         </div>
 
-        
     </div>
+
+    <script>
+        function toggleInputs() {
+            let type = document.getElementById('filter_type').value;
+            document.getElementById('dateInput').classList.add('hidden');
+            document.getElementById('monthInput').classList.add('hidden');
+            document.getElementById('yearInput').classList.add('hidden');
+            document.getElementById('startDateInput').classList.add('hidden');
+            document.getElementById('endDateInput').classList.add('hidden');
+
+            if (type === 'day') {
+                document.getElementById('dateInput').classList.remove('hidden');
+            } else if (type === 'month') {
+                document.getElementById('monthInput').classList.remove('hidden');
+                document.getElementById('yearInput').classList.remove('hidden');
+            } else if (type === 'year') {
+                document.getElementById('yearInput').classList.remove('hidden');
+            } else if (type === 'range') {
+                document.getElementById('startDateInput').classList.remove('hidden');
+                document.getElementById('endDateInput').classList.remove('hidden');
+            }
+        }
+        toggleInputs();
+    </script>
+
 @endsection

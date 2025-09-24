@@ -14,10 +14,13 @@ return new class extends Migration
     
         Schema::create('monthly_targets', function (Blueprint $table) {
             $table->id();
-            $table->integer('year');
-            $table->tinyInteger('month'); // 1..12
-            $table->decimal('amount', 14, 2)->default(0);
+            $table->unsignedInteger('year');
+            $table->unsignedInteger('month');
+            $table->decimal('target_amount', 15, 2)->default(0.00);
             $table->timestamps();
+
+            // Ensure each month has only one target
+            $table->unique(['year', 'month']);
         });
     }
 

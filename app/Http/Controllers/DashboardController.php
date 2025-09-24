@@ -75,7 +75,7 @@ class DashboardController extends Controller
 
         // Pull targets (optional). If you don’t have table, set a default per-month target here.
         $targets = DB::table('monthly_targets')
-            ->select('month','amount')
+            ->select('month','target_amount')
             ->where('year', $year)
             ->get()
             ->keyBy('month');
@@ -101,7 +101,7 @@ class DashboardController extends Controller
             $running += $net;
             $cumBal[] = round($running, 2);
 
-            $t = (float)($targets[$m]->amount ?? 1000000); // set your default if needed
+            $t = (float)($targets[$m]->target_amount ?? 1000000); // set your default if needed
             $target[] = round($t, 2);
         }
         

@@ -12,6 +12,8 @@ class MonthlyOnlineCost extends Model
         'category_id',
         'activate_date',
         'expire_date',
+        'activate_type',
+        'activate_cost',
         'amount_type',
         'amount',
         'description',

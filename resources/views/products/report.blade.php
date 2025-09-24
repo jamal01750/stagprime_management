@@ -107,10 +107,10 @@
                         <th class="p-2 border">Stock Qty</th>
                         <th class="p-2 border">Sell Qty</th>
                         <th class="p-2 border">Amount</th>
-                        <th class="p-2 border">Sell Desc</th>
+                        <th class="p-2 border">Sell Comment</th>
                         <th class="p-2 border">Loss Qty</th>
                         <th class="p-2 border">Loss Amount</th>
-                        <th class="p-2 border">Loss Desc</th>
+                        <th class="p-2 border">Loss Comment</th>
                     </tr>
                 </thead>
                 <tbody>

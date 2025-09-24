@@ -10,7 +10,10 @@ class ProductSale extends Model
         'product_category_id',
         'quantity',
         'amount',
-        'description'
+        'description',
+        'due_date',
+        'paid_date',
+        'status',
     ];
 
     public function category()

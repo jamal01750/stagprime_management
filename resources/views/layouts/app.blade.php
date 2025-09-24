@@ -36,8 +36,15 @@
                         <p class="mt-2 text-gray-600">@yield('heading')</p>
                     </div>
 
-                    <div class="flex items-center gap-4 text-white bg-green-600 border border-gray-200 rounded-full px-4 py-2">
-                        <p><a href="{{route('notifications.index')}}">Notification</a></p>
+                    <div class="flex items-center gap-2 text-white bg-green-600 border border-gray-200 rounded-full px-4 py-2">
+                        <a href="{{ route('notifications.index') }}" class="flex items-center gap-2">
+                            {{-- Bell Icon --}}
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                    d="M15 17h5l-1.405-1.405C18.79 14.79 18 13.42 18 12V8c0-3.314-2.686-6-6-6S6 4.686 6 8v4c0 1.42-.79 2.79-1.595 3.595L3 17h5m7 0a3 3 0 01-6 0h6z" />
+                            </svg>
+                            <span>Notifications</span>
+                        </a>
                     </div>
 
                     @auth

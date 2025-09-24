@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->unsignedInteger('year');
             $table->unsignedInteger('month');
-            $table->date('last_date');
+            $table->date('last_date')->nullable();
             $table->unsignedBigInteger('category_id');
             $table->decimal('amount', 10, 2);
             $table->string('description')->nullable();

@@ -66,20 +66,34 @@
                             </div>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700">Activate Date</label>
-                            <input type="date" name="activate_date" class="mt-1 block w-full border-2 border-blue-600 focus:border-blue-700 focus:ring-blue-700 rounded bg-white text-gray-900" required>
+                            <label class="block text-sm font-medium text-gray-700">Purchase/Activate Date</label>
+                            <input type="date" name="activate_date" class="mt-1 block w-full border-2 border-blue-600 focus:border-blue-700 focus:ring-blue-700 rounded bg-white text-gray-900">
                                 @if ($errors->has('activate_date'))
                                 <span class="text-red-600 text-xs">{{ $errors->first('activate_date') }}</span>
                             @endif
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Expire Date</label>
-                            <input type="date" name="expire_date" class="mt-1 block w-full border-2 border-blue-600 focus:border-blue-700 focus:ring-blue-700 rounded bg-white text-gray-900" required>
+                            <input type="date" name="expire_date" class="mt-1 block w-full border-2 border-blue-600 focus:border-blue-700 focus:ring-blue-700 rounded bg-white text-gray-900">
                                 @if ($errors->has('expire_date'))
                                 <span class="text-red-600 text-xs">{{ $errors->first('expire_date') }}</span>
                             @endif
                         </div>
                         
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Purchase/Activate Cost</label>
+                            <div class="flex space-x-2">
+                                <select name="activate_type" class="mt-1 block rounded border-2 border-blue-600 bg-white text-gray-900">
+                                    <option value="dollar">$ Dollar</option>
+                                    <option value="taka">৳ Taka</option>
+                                </select>
+                                <input type="number" name="activate_cost" step="0.01" class="mt-1 block w-full rounded bg-white text-gray-900 border-2 border-blue-600 focus:border-blue-700 focus:ring-blue-700 pl-[5px]">
+                            </div>
+                            @if ($errors->has('activate_cost'))
+                                <span class="text-red-600 text-xs">{{ $errors->first('activate_cost') }}</span>
+                            @endif
+                        </div>
+
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Renew Amount</label>
                             <div class="flex space-x-2">
@@ -87,12 +101,13 @@
                                     <option value="dollar">$ Dollar</option>
                                     <option value="taka">৳ Taka</option>
                                 </select>
-                                <input type="number" name="amount" step="0.01" class="mt-1 block w-full rounded bg-white text-gray-900 border-2 border-blue-600 focus:border-blue-700 focus:ring-blue-700 pl-[5px]" required>
+                                <input type="number" name="amount" step="0.01" class="mt-1 block w-full rounded bg-white text-gray-900 border-2 border-blue-600 focus:border-blue-700 focus:ring-blue-700 pl-[5px]">
                             </div>
                             @if ($errors->has('amount'))
                                 <span class="text-red-600 text-xs">{{ $errors->first('amount') }}</span>
                             @endif
                         </div>
+
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Note</label>
                             <textarea name="description" rows="3" class="mt-1 block w-full border-2 border-blue-600 focus:border-blue-700 focus:ring-blue-700 rounded bg-white text-gray-900 pl-[5px]"></textarea>

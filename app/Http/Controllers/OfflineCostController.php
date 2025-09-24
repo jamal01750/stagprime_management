@@ -81,13 +81,26 @@ class OfflineCostController extends Controller
             'amount' => 'required|numeric|min:1',
             'description' => ['nullable', 'string', 'not_regex:/<[^>]*>|<script\b[^>]*>(.*?)<\/script>/i'],
         ]);
+        
+        if($request->last_date){
+            $lastDate = $request->last_date;
+            $status = 'unpaid';
+            $paidDate = null;
+        }else{
+            $lastDate = null;
+            $status = 'paid';
+            $paidDate = now('Asia/Dhaka');
+        }
+        
         MonthlyOfflineCost::create([
             'year' => $request->year,
             'month' => $request->month,
-            'last_date' => $request->last_date,
+            'last_date' => $lastDate,
             'category_id' => $request->category_id,
             'amount' => $request->amount,
             'description' => $request->description,
+            'status' => $status,
+            'paid_date' => $paidDate,
         ]);
 
         return redirect()->back()->with('success', 'Monthly expense added successfully.');
@@ -95,12 +108,26 @@ class OfflineCostController extends Controller
 
     public function report(Request $request)
     {
-        $year = (int)($request->query('year') ?? now('Asia/Dhaka')->year);
-        $month = (int)($request->query('month') ?? now('Asia/Dhaka')->month);
-        
-        $expenses = MonthlyOfflineCost::where('year', $year)
-            ->where('month', $month)
-            ->get();
+        $filterType = $request->query('filter_type', 'month');
+        $date = $request->query('date');
+        $month = (int)$request->query('month', now('Asia/Dhaka')->month);
+        $year = (int)$request->query('year', now('Asia/Dhaka')->year);
+        $startDate = $request->query('start_date');
+        $endDate = $request->query('end_date');
+
+        $query = MonthlyOfflineCost::query();
+
+        if ($filterType === 'day' && $date) {
+            $query->whereDate('created_at', $date);
+        } elseif ($filterType === 'month') {
+            $query->where('year', $year)->where('month', $month);
+        } elseif ($filterType === 'year') {
+            $query->where('year', $year);
+        } elseif ($filterType === 'range' && $startDate && $endDate) {
+            $query->whereBetween('created_at', [$startDate, $endDate]);
+        }
+
+        $expenses = $query->get();
 
         $categories = OfflineCostCategory::all();
         foreach ($expenses as $expense) {
@@ -109,11 +136,16 @@ class OfflineCostController extends Controller
         }
 
         return view('offline_cost.report_offline_cost', [
-            'year' => $year,
+            'filterType' => $filterType,
+            'date' => $date,
             'month' => $month,
+            'year' => $year,
+            'startDate' => $startDate,
+            'endDate' => $endDate,
             'expenses' => $expenses,
         ]);
     }
+
 
     public function update(Request $request, $id)
     {

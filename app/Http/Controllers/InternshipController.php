@@ -139,7 +139,7 @@ class InternshipController extends Controller
 
         return view('internship.running_list', compact('students'));
     }
-
+    
     // Intern Payment Update
     public function paymentUpdate($id)
     {
@@ -149,14 +149,25 @@ class InternshipController extends Controller
         if ($student->total_paid < $student->pay_amount) {
             $student->total_paid += $installment;
 
+            // Installment sequence check
+            if ($student->total_paid == $installment) {
+                $student->paid_date = Carbon::now()->toDateString();
+            } elseif ($student->total_paid == $installment * 2) {
+                $student->paid_date2 = Carbon::now()->toDateString();
+            } elseif ($student->total_paid >= $student->pay_amount) {
+                $student->paid_date3 = Carbon::now()->toDateString();
+            }
+
             // Update payment status
             if ($student->total_paid >= $student->pay_amount) {
                 $student->payment_status = 'Full paid';
+                $student->total_paid = $student->pay_amount; // Ensure no overpayment
             } else {
                 $student->payment_status = 'Partial';
             }
 
             $student->save();
+
             return redirect()->route('internship.list.running')
                 ->with('success', "Payment updated successfully for {$student->intern_id}.");
         }
@@ -164,6 +175,8 @@ class InternshipController extends Controller
         return redirect()->route('internship.list.running')
             ->with('success', "{$student->intern_id} is already fully paid.");
     }
+
+
 
 
     // Intern Active Status Update

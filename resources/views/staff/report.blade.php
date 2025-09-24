@@ -13,7 +13,7 @@
             {{-- Report Type --}}
             <div>
                 <label class="block text-sm font-medium">Report Type</label>
-                <select name="type" onchange="this.form.submit()" class="border rounded p-2">
+                <select name="type" onchange="this.form.submit()" class="border rounded form-select d-inline-block">
                     <option value="monthly" {{ request('type')=='monthly' ? 'selected' : '' }}>Monthly Report</option>
                     <option value="yearly" {{ request('type')=='yearly' ? 'selected' : '' }}>Yearly Report</option>
                     <option value="individual" {{ request('type')=='individual' ? 'selected' : '' }}>Individual Report</option>
@@ -25,7 +25,7 @@
             @if(request('type','monthly') == 'monthly')
                 <div>
                     <label class="block text-sm font-medium">Month</label>
-                    <select name="month" class="border rounded p-2">
+                    <select name="month" class="border rounded form-select d-inline-block">
                         @foreach(range(1,12) as $m)
                             <option value="{{ $m }}" {{ request('month', now()->month) == $m ? 'selected' : '' }}>
                                 {{ date('F', mktime(0,0,0,$m,1)) }}
@@ -35,7 +35,7 @@
                 </div>
                 <div>
                     <label class="block text-sm font-medium">Year</label>
-                    <input type="number" name="year" value="{{ request('year', now()->year) }}" class="border rounded p-2 w-28">
+                    <input type="number" name="year" value="{{ request('year', now()->year) }}" class="border rounded">
                 </div>
             @endif
 
