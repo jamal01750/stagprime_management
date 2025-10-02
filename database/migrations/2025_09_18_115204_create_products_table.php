@@ -16,8 +16,10 @@ return new class extends Migration
             $table->foreignId('product_category_id')
                 ->constrained('product_categories')
                 ->onDelete('cascade');
-            $table->string('product_name');
             $table->integer('quantity')->default(0);
+            $table->enum('amount_type', ['dollar', 'taka'])->default('dollar'); // Default to dollar
+            $table->decimal('amount', 10, 2)->default(0.00); // Default to 0.00
+            $table->enum('status', ['approved', 'pending'])->default('pending');
             $table->timestamps();
         });
     }

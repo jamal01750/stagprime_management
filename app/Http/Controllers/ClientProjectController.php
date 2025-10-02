@@ -37,6 +37,8 @@ class ClientProjectController extends Controller
             'end_date' => $validatedData['end_date'],
             'contract_amount' => $validatedData['contract_amount'],
             'advance_amount' => $validatedData['advance_amount'],
+            'due_amount' => $validatedData['contract_amount'] - $validatedData['advance_amount'],
+            'status' => $validatedData['advance_amount'] == $validatedData['contract_amount'] ? 'paid' : 'unpaid',
         ]);
 
         return redirect()->back()->with('success', 'Client project created successfully!');
@@ -73,7 +75,9 @@ class ClientProjectController extends Controller
 
     public function createClientDebit()
     {
-        $projects = ClientProject::all();
+        // Fetch all projects with their latest due_amount
+        $projects = ClientProject::all(['id', 'project_name', 'currency', 'due_amount']);
+
         return view('client_project.add_client_debit', compact('projects'));
     }
     
@@ -85,18 +89,25 @@ class ClientProjectController extends Controller
             'pay_amount'   => 'required|numeric|min:0',
             'due_amount'   => 'required|numeric|min:0',
             'pay_date'     => 'required|date',
-            'next_date'    => 'nullable|date',
+            // 'next_date'    => 'nullable|date',
         ]);
 
-        ClientProjectDebit::create([
+        $projectDebit = ClientProjectDebit::create([
             'project_id'  => $validated['project_id'],
             'currency'    => $validated['currency'],
             'pay_amount'  => $validated['pay_amount'],
             'due_amount'  => $validated['due_amount'],
             'pay_date'    => $validated['pay_date'],
-            'next_date'   => $validated['next_date'],
-            'status'      => $validated['due_amount'] > 0 ? 'unpaid' : 'paid',
+            // 'next_date'   => $validated['next_date'],
+            'status'      =>  'unpaid', // Default status is 'unpaid'
         ]);
+
+        if ($projectDebit->due_amount > 0) {
+            $project = ClientProject::findOrFail($projectDebit->project_id);
+            $project->due_amount = $projectDebit->due_amount;
+            $project->status = 'unpaid';
+            $project->save();
+        } 
 
         return redirect()->back()->with('success', 'Client Debit added successfully!');
     }
@@ -130,6 +141,13 @@ class ClientProjectController extends Controller
         $debit->status = $debit->status === 'paid' ? 'unpaid' : 'paid';
         $debit->save();
 
+        if ($debit->due_amount == 0) {
+            $project = ClientProject::findOrFail($debit->project_id);
+            $project->due_amount = 0;
+            $project->status = 'paid';
+            $project->save();
+        } 
+        
         return response()->json([
             'success' => true,
             'status' => $debit->status

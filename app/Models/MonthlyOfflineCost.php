@@ -22,8 +22,5 @@ class MonthlyOfflineCost extends Model
         return $this->belongsTo(OfflineCostCategory::class, 'category_id');
     }
 
-    public function notifications()
-    {
-        return $this->hasMany(OfflinePaymentNotification::class, 'monthly_offline_cost_id');
-    }
+    
 }

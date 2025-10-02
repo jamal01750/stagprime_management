@@ -2,17 +2,17 @@
 <aside 
     x-data="sidebarNav()" 
     x-init="initMenu()" 
-    class="w-64 min-h-screen bg-white border-r border-gray-200 p-2 shadow-lg flex flex-col"
+    class="w-48 min-h-screen bg-white border-r border-gray-200 p-2 shadow-lg flex flex-col"
 >
     <!-- Logo -->
-    <div class="flex items-center p-2">
+    <div class="items-center p-2">
         <a href="{{ route('home') }}" class="flex items-center">
             <img src="{{ asset('images/logo.png') }}" alt="Stagprime Logo">
         </a>
     </div>
 
     <nav class="flex-1">
-        <ul class="space-y-2">
+        <ul class="space-y-1">
 
             <!-- Dashboard -->
             <li>
@@ -26,7 +26,7 @@
             <!-- Daily Credit & Debit -->
             <li>
                 <button @click="toggleMenu('credit')" class="flex justify-between text-left items-center w-full px-3 py-2 rounded text-gray-700 font-medium hover:bg-blue-100 focus:outline-none">
-                    <span>Daily Credit & Debit</span>
+                    <span>Credit & Debit</span>
                     <svg :class="{'rotate-90': openMenu.credit}" 
                         class="w-4 h-4 transform transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
@@ -59,7 +59,7 @@
             <!-- Office Student / Internship (Nested Submenu Example) -->
             <li>
                 <button @click="toggleMenu('office')" class="flex justify-between text-left items-center w-full px-3 py-2 rounded text-gray-700 font-medium hover:bg-blue-100 focus:outline-none">
-                    <span>Office Student / Internship</span>
+                    <span>Student / Internship</span>
                     <svg :class="{'rotate-90': openMenu.office}" 
                         class="w-4 h-4 transform transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
@@ -179,7 +179,7 @@
                     @click="toggleMenu('offline')"
                     class="flex justify-between text-left items-center w-full px-3 py-2 rounded text-gray-700 font-medium hover:bg-blue-100 focus:outline-none"
                 >
-                    <span>Office Offline Cost</span>
+                    <span>Offline Cost</span>
                     <svg :class="{'rotate-90': openMenu.offline}" class="w-4 h-4 transform transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                     </svg>
@@ -207,7 +207,7 @@
                     @click="toggleMenu('online')"
                     class="flex justify-between text-left items-center w-full px-3 py-2 rounded text-gray-700 font-medium hover:bg-blue-100 focus:outline-none"
                 >
-                    <span>Office Online Cost</span>
+                    <span>Online Cost</span>
                     <svg :class="{'rotate-90': openMenu.online}" class="w-4 h-4 transform transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                     </svg>
@@ -284,6 +284,12 @@
                         </a>
                     </li>
                     <li>
+                        <a href="{{ route('product.category') }}" :class="navActive('product.category')"
+                            class="block px-3 py-2 rounded hover:bg-green-100">
+                                Product Category
+                        </a>
+                    </li>
+                    <li>
                         <a href="{{ route('product.add') }}" :class="navActive('product.add')"
                             class="block px-3 py-2 rounded hover:bg-green-100">
                                 Add Product
@@ -302,6 +308,12 @@
                         </a>
                     </li>
                     <li>
+                        <a href="{{ route('product.return') }}" :class="navActive('product.return')"
+                            class="block px-3 py-2 rounded hover:bg-green-100">
+                                Return Product
+                        </a>
+                    </li>
+                    <li>
                         <a href="{{ route('product.report') }}" :class="navActive('product.report')"
                             class="block px-3 py-2 rounded hover:bg-green-100">
                                 Report 
@@ -317,7 +329,7 @@
                     @click="toggleMenu('company')"
                     class="flex justify-between text-left items-center w-full px-3 py-2 rounded text-gray-700 font-medium hover:bg-blue-100 focus:outline-none"
                 >
-                    <span>Company Own Projects</span>
+                    <span>Own Projects</span>
                     <svg :class="{'rotate-90': openMenu.company}" class="w-4 h-4 transform transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                     </svg>
@@ -428,7 +440,7 @@
                     @click="toggleMenu('priority')"
                     class="flex justify-between text-left items-center w-full px-3 py-2 rounded text-gray-700 font-medium hover:bg-blue-100 focus:outline-none"
                 >
-                    <span>Office Priority Products/Projects</span>
+                    <span>Priority Products/Projects</span>
                     <svg :class="{'rotate-90': openMenu.priority}" class="w-4 h-4 transform transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                     </svg>
@@ -451,8 +463,18 @@
             </li>
             
 
-            <!-- Add other menus here, following the same nested pattern -->
-            <li><a class="block px-3 py-2 rounded hover:bg-blue-100 text-gray-700 font-medium" href="{{route('admin.users.index')}}">User Settings</a></li>
+            <!-- User Settings (Admin Only) -->
+            @auth
+                @if(auth()->user()->role === 'admin')
+                    <li>
+                        <a class="block px-3 py-2 rounded hover:bg-blue-100 text-gray-700 font-medium"
+                        href="{{ route('admin.users.index') }}">
+                            User Settings
+                        </a>
+                    </li>
+                @endif
+            @endauth
+
             <li><a class="block px-3 py-2 rounded hover:bg-blue-100 text-gray-700 font-medium" href="#online">Reports & Analytics</a></li>
 
         </ul>
@@ -506,9 +528,11 @@
                 'installment.create': ['loan'],
                 'loan.report': ['loan'],
                 'product.summary': ['product'],
+                'product.category': ['product'],
                 'product.add': ['product'],
                 'product.sell': ['product'],
                 'product.loss': ['product'],
+                'product.return': ['product'],
                 'product.report': ['product'],
                 'company.project.create': ['company'],
                 'company.project.transaction.add': ['company'],

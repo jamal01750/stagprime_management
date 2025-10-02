@@ -27,8 +27,9 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
-// Schedule your command here
-Schedule::command('notifications:generate-offline')
+ 
+// Auto-generate All Notifications every minute
+Schedule::command('notifications:generate-all')
     ->everyMinute()
     ->timezone('Asia/Dhaka');
 

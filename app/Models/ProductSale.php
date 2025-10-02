@@ -9,9 +9,9 @@ class ProductSale extends Model
     protected $fillable = [
         'product_category_id',
         'quantity',
+        'amount_type',
         'amount',
         'description',
-        'due_date',
         'paid_date',
         'status',
     ];

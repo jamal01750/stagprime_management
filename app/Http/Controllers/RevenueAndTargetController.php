@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\ClientProjectTransaction;
 use App\Models\CompanyProjectTransaction;
+use App\Models\CreditOrDebit;
 use Illuminate\Http\Request;
 use App\Models\MonthlyTarget;
 use App\Models\Installment;
@@ -41,6 +42,8 @@ class RevenueAndTargetController extends Controller
         $revenueByCategory['Company Projects'] = CompanyProjectTransaction::whereYear('date', $currentYear)->whereMonth('date', $currentMonth)->where('type', 'profit')->sum('amount');
         $revenueByCategory['Client Projects'] = ClientProjectTransaction::whereYear('date', $currentYear)->whereMonth('date', $currentMonth)->where('type', 'profit')->sum('amount');
 
+        $revenueByCategory['Credits'] = CreditOrDebit::whereYear('date', $currentYear)->whereMonth('date', $currentMonth)->where('type', 'credit')->sum('amount');
+
         $totalRevenue = array_sum($revenueByCategory);
 
         // --- 3. Calculate TOTAL LIVE EXPENSE for the Current Month ---
@@ -68,6 +71,9 @@ class RevenueAndTargetController extends Controller
             }
         }
         $totalExpense += StaffSalary::whereYear('paid_date', $currentYear)->whereMonth('paid_date', $currentMonth)->sum('amount');
+        $totalExpense += CompanyProjectTransaction::whereYear('date', $currentYear)->whereMonth('date', $currentMonth)->where('type', 'invest')->sum('amount');
+        $totalExpense += ClientProjectTransaction::whereYear('date', $currentYear)->whereMonth('date', $currentMonth)->where('type', 'invest')->sum('amount');
+        $totalExpense += CreditOrDebit::whereYear('date', $currentYear)->whereMonth('date', $currentMonth)->where('type', 'debit')->sum('amount');
 
         // --- 4. Calculate LIVE SHORTAGE for the Current Month ---
         // Shortage is the remaining amount needed to hit the target. It cannot be negative.
@@ -248,6 +254,61 @@ class RevenueAndTargetController extends Controller
                     }
                 }
                 break;
+
+            case 'debit':
+                // For Debits, we assume all debits are already expended
+                $alreadyExpended = CreditOrDebit::whereYear('date', $currentYear)
+                    ->whereMonth('date', $currentMonth)
+                    ->where('type', 'debit')
+                    ->sum('amount');
+                $pendingExpense = 0; // No pending expense for debits
+                $expendedRecords = CreditOrDebit::whereYear('date', $currentYear)
+                    ->whereMonth('date', $currentMonth)
+                    ->where('type', 'debit')
+                    ->get();
+                foreach ($expendedRecords as $record) {
+                    $day = Carbon::parse($record->date)->day;
+                    if (isset($dailyExpenses[$day])) {
+                        $dailyExpenses[$day] += $record->amount;
+                    }
+                }
+                break;
+
+            case 'company_project':
+                $alreadyExpended = CompanyProjectTransaction::whereYear('date', $currentYear)
+                    ->whereMonth('date', $currentMonth)
+                    ->where('type', 'invest')
+                    ->sum('amount');
+                $pendingExpense = 0; // As per requirements
+                $expendedRecords = CompanyProjectTransaction::whereYear('date', $currentYear)
+                    ->whereMonth('date', $currentMonth)
+                    ->where('type', 'invest')
+                    ->get();
+                foreach ($expendedRecords as $record) {
+                    $day = Carbon::parse($record->date)->day;
+                    if (isset($dailyExpenses[$day])) {
+                        $dailyExpenses[$day] += $record->amount;
+                    }
+                }
+                break;
+
+            case 'client_project':
+                $alreadyExpended = ClientProjectTransaction::whereYear('date', $currentYear)
+                    ->whereMonth('date', $currentMonth)
+                    ->where('type', 'invest')
+                    ->sum('amount');    
+                $pendingExpense = 0; // As per requirements
+                $expendedRecords = ClientProjectTransaction::whereYear('date', $currentYear)
+                    ->whereMonth('date', $currentMonth)
+                    ->where('type', 'invest')
+                    ->get();
+                foreach ($expendedRecords as $record) {
+                    $day = Carbon::parse($record->date)->day;
+                    if (isset($dailyExpenses[$day])) {
+                        $dailyExpenses[$day] += $record->amount;
+                    }
+                }
+                break;
         }
 
         // Finalize graph data structure
@@ -378,6 +439,23 @@ class RevenueAndTargetController extends Controller
                 $transactions = ClientProjectTransaction::whereYear('date', $currentYear)
                     ->whereMonth('date', $currentMonth)
                     ->where('type', 'profit')
+                    ->get();
+                foreach ($transactions as $transaction) {
+                    $day = Carbon::parse($transaction->date)->day;
+                    if(isset($dailyRevenue[$day])) $dailyRevenue[$day] += $transaction->amount;
+                }
+                break;
+
+            case 'credit':
+                // For Credits, we assume all Credits are already Collected
+                $collectedRevenue = CreditOrDebit::whereYear('date', $currentYear)
+                    ->whereMonth('date', $currentMonth)
+                    ->where('type', 'credit')
+                    ->sum('amount');
+                $pendingRevenue = 0; // No pending revenue for credits
+                $transactions = CreditOrDebit::whereYear('date', $currentYear)
+                    ->whereMonth('date', $currentMonth)
+                    ->where('type', 'credit')
                     ->get();
                 foreach ($transactions as $transaction) {
                     $day = Carbon::parse($transaction->date)->day;

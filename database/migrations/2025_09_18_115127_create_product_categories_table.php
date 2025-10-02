@@ -13,8 +13,9 @@ return new class extends Migration
     {
         Schema::create('product_categories', function (Blueprint $table) {
             $table->id();
-            $table->string('name')->unique()->comment('Name of the product category');
-            $table-> integer('quantity')->default(0)->comment('Total quantity of products in this category');
+            $table->string('name')->unique();
+            $table-> integer('total_quantity')->default(0);
+            $table-> integer('quantity')->default(0);
             $table->timestamps();
         });
     }

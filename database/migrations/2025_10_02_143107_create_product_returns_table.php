@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('product_sales', function (Blueprint $table) {
+        Schema::create('product_returns', function (Blueprint $table) {
             $table->id();
             $table->foreignId('product_category_id')
                 ->constrained('product_categories')
@@ -20,8 +20,7 @@ return new class extends Migration
             $table->enum('amount_type', ['dollar', 'taka'])->default('dollar');
             $table->decimal('amount', 10, 2)->default(0.00);
             $table->string('description')->nullable();
-            $table->date('paid_date')->nullable();
-            $table->enum('status', ['paid', 'unpaid'])->default('unpaid');
+            $table->enum('status', ['approved', 'pending'])->default('pending');
             $table->timestamps();
         });
     }
@@ -31,6 +30,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('product_sales');
+        Schema::dropIfExists('product_returns');
     }
 };

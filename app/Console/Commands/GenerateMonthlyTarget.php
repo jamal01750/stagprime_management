@@ -20,7 +20,7 @@ use App\Models\Student;
 use App\Models\StudentPayment;
 use App\Models\CompanyProjectTransaction;
 use App\Models\ClientProjectTransaction;
-
+use App\Models\CreditOrDebit;
 use App\Models\PriorityProduct;
 use App\Models\PriorityNotification;
 use App\Models\PriorityProductBudget;
@@ -96,6 +96,10 @@ class GenerateMonthlyTarget extends Command
             }
         }
         $totalExpenses += StaffSalary::whereYear('paid_date', $calcYear)->whereMonth('paid_date', $calcMonth)->sum('amount');
+        $totalExpenses += CreditOrDebit::whereYear('date', $calcYear)->whereMonth('date', $calcMonth)->where('type', 'debit')->sum('amount');
+        $totalExpenses += CompanyProjectTransaction::whereYear('date', $calcYear)->whereMonth('date', $calcMonth)->where('type', 'invest')->sum('amount');
+        $totalExpenses += ClientProjectTransaction::whereYear('date', $calcYear)->whereMonth('date', $calcMonth)->where('type', 'invest')->sum('amount');
+        
         $this->info("Previous Month Total Expenses: " . number_format($totalExpenses, 2) . " BDT");
 
         // --- 3. Calculate Total Revenue for the PREVIOUS month ---
@@ -105,6 +109,7 @@ class GenerateMonthlyTarget extends Command
         $totalRevenue += StudentPayment::whereYear('pay_date', $calcYear)->whereMonth('pay_date', $calcMonth)->sum('pay_amount');
         $totalRevenue += CompanyProjectTransaction::whereYear('date', $calcYear)->whereMonth('date', $calcMonth)->where('type', 'profit')->sum('amount');
         $totalRevenue += ClientProjectTransaction::whereYear('date', $calcYear)->whereMonth('date', $calcMonth)->where('type', 'profit')->sum('amount');
+        $totalRevenue += CreditOrDebit::whereYear('date', $calcYear)->whereMonth('date', $calcMonth)->where('type', 'credit')->sum('amount');
         $this->info("Previous Month Total Revenue: " . number_format($totalRevenue, 2) . " BDT");
         
         // --- 4. Apply the new formula to calculate the final target ---

@@ -3,9 +3,9 @@
 @section('heading', 'User Management')
 
 @section('content')
-
-<div class="mb-5 flex justify-between items-center bg-gray-300 p-4 rounded">
-    <!-- New User Role creation  -->
+<!-- New User Role creation  -->
+<!-- <div class="mb-5 flex justify-between items-center bg-gray-300 p-4 rounded">
+    
     <form method="POST" action="{{ route('admin.addrole') }}" class="space-y-3 md:space-y-4 w-full md:w-auto">
         @csrf
         <div>
@@ -17,7 +17,7 @@
         </div>
         <button type="submit" class="px-1 py-1 bg-green-600 text-white rounded hover:bg-green-700 font-normal">Add New Role</button>
     </form>
-</div>
+</div> -->
 
 @if(session('success'))
     <p style="color:green">{{ session('success') }}</p>

@@ -19,6 +19,8 @@ return new class extends Migration
             $table->date('end_date');
             $table->decimal('contract_amount', 10, 2);
             $table->decimal('advance_amount', 10, 2);
+            $table->decimal('due_amount', 10, 2);
+            $table->enum('status', ['paid', 'unpaid'])->default('unpaid');
             $table->timestamps();
         });
     }

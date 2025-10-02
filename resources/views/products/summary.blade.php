@@ -8,18 +8,19 @@
 
     <h1 class="text-2xl font-bold mb-4">Summary Dashboard</h1>
 
-    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-4 gap-4">
 
-        {{-- Current Stock --}}
-        <div class="bg-white shadow rounded-xl p-6 text-center">
-            <h2 class="text-gray-600">Current Stock</h2>
-            <p class="text-3xl font-bold text-blue-600">{{ $totals['current_stock'] }}</p>
-        </div>
 
         {{-- Total Stock --}}
         <div class="bg-white shadow rounded-xl p-6 text-center">
             <h2 class="text-gray-600">Total Stock</h2>
             <p class="text-3xl font-bold text-green-600">{{ $totals['total_stock'] }}</p>
+        </div>
+
+        {{-- Current Stock --}}
+        <div class="bg-white shadow rounded-xl p-6 text-center">
+            <h2 class="text-gray-600">Current Stock</h2>
+            <p class="text-3xl font-bold text-blue-600">{{ $totals['current_stock'] }}</p>
         </div>
 
         {{-- Sell Quantity --}}
@@ -32,6 +33,12 @@
         <div class="bg-white shadow rounded-xl p-6 text-center">
             <h2 class="text-gray-600">Total Loss Quantity</h2>
             <p class="text-3xl font-bold text-red-600">{{ $totals['loss_qty'] }}</p>
+        </div>
+        
+        {{-- Return Quantity --}}
+        <div class="bg-white shadow rounded-xl p-6 text-center">
+            <h2 class="text-gray-600">Total Return Quantity</h2>
+            <p class="text-3xl font-bold text-yellow-600">{{ $totals['return_qty'] }}</p>
         </div>
 
         {{-- Revenue --}}

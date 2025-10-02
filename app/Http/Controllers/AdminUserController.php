@@ -17,8 +17,8 @@ class AdminUserController extends Controller
 
     public function create()
     {
-        $roles = Role::all();
-        return view('admin.users.create', compact('roles'));
+        // $roles = Role::all();
+        return view('admin.users.create');
     }
 
     public function store(Request $request)
@@ -27,7 +27,7 @@ class AdminUserController extends Controller
             'name'     => 'required|string|max:255',
             'email'    => 'required|email|unique:users',
             'password' => 'required|min:6|confirmed',
-            'role'     => 'required|exists:roles,role_name',
+            'role'     => 'required|in:Admin,Manager', // Adjust roles as needed
         ]);
 
         User::create([

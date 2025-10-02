@@ -13,19 +13,20 @@
 
     <div class="bg-white rounded shadow p-4 md:p-6">
         <h2 class="text-lg md:text-xl font-semibold mb-4">Add Client Debit</h2>
-        <form method="POST" action="{{ route('client.debit.store') }}" class="space-y-4" id="debitForm">
+
+        <form method="POST" action="{{ route('client.debit.store') }}" class="space-y-4">
             @csrf
 
             {{-- Project Dropdown --}}
             <div>
                 <label class="block text-sm font-medium text-gray-700">Project Name</label>
-                <select name="project_id" id="projectSelect" class="w-full border-2 border-blue-600 rounded px-3 py-1" required>
+                <select name="project_id" id="projectSelect" 
+                        class="w-full border-2 border-blue-600 rounded px-3 py-1" required>
                     <option value="">-- Select Project --</option>
                     @foreach($projects as $project)
                         <option value="{{ $project->id }}"
                             data-currency="{{ $project->currency }}"
-                            data-contract="{{ $project->contract_amount }}"
-                            data-advance="{{ $project->advance_amount }}">
+                            data-due="{{ $project->due_amount }}">
                             {{ $project->project_name }}
                         </option>
                     @endforeach
@@ -35,41 +36,49 @@
             {{-- Currency --}}
             <div>
                 <label class="block text-sm font-medium text-gray-700">Transaction Currency</label>
-                <input type="text" name="currency" id="currencyField" class="w-full border-2 border-blue-600 rounded px-3 py-1 bg-gray-100" readonly required>
+                <input type="text" name="currency" id="currencyField" 
+                       class="w-full border-2 border-blue-600 rounded px-3 py-1 bg-gray-100" 
+                       readonly required>
             </div>
 
             {{-- Pay Amount --}}
             <div>
                 <label class="block text-sm font-medium text-gray-700">Pay Amount</label>
-                <input type="number" name="pay_amount" id="payAmount" step="0.01" class="w-full border-2 border-blue-600 rounded px-3 py-1" required>
+                <input type="number" name="pay_amount" id="payAmount" step="0.01" 
+                       class="w-full border-2 border-blue-600 rounded px-3 py-1" required>
             </div>
 
             {{-- Due Amount --}}
             <div>
                 <label class="block text-sm font-medium text-gray-700">Due Amount</label>
-                <input type="number" name="due_amount" id="dueAmount" step="0.01" class="w-full border-2 border-blue-600 rounded px-3 py-1 bg-gray-100" readonly required>
+                <input type="number" name="due_amount" id="dueAmount" step="0.01" 
+                       class="w-full border-2 border-blue-600 rounded px-3 py-1 bg-gray-100" 
+                       readonly required>
             </div>
 
             {{-- Pay Date --}}
             <div>
                 <label class="block text-sm font-medium text-gray-700">Pay Date</label>
-                <input type="date" name="pay_date" class="w-full border-2 border-blue-600 rounded px-3 py-1" required>
+                <input type="date" name="pay_date" 
+                       class="w-full border-2 border-blue-600 rounded px-3 py-1" required>
             </div>
 
             {{-- Next Date --}}
-            <div>
+            <!-- <div>
                 <label class="block text-sm font-medium text-gray-700">Next Date</label>
-                <input type="date" name="next_date" class="w-full border-2 border-blue-600 rounded px-3 py-1">
-            </div>
+                <input type="date" name="next_date" 
+                       class="w-full border-2 border-blue-600 rounded px-3 py-1">
+            </div> -->
 
-            <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 font-medium">
+            <button type="submit" 
+                    class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 font-medium">
                 Save Debit
             </button>
         </form>
     </div>
 </div>
 
-{{-- JavaScript for Dynamic Calculation --}}
+{{-- JavaScript for updating fields --}}
 <script>
 document.addEventListener("DOMContentLoaded", function () {
     const projectSelect = document.getElementById("projectSelect");
@@ -82,13 +91,10 @@ document.addEventListener("DOMContentLoaded", function () {
     projectSelect.addEventListener("change", function () {
         const selected = this.options[this.selectedIndex];
         const currency = selected.getAttribute("data-currency");
-        const contract = parseFloat(selected.getAttribute("data-contract")) || 0;
-        const advance = parseFloat(selected.getAttribute("data-advance")) || 0;
-
-        baseDue = contract - advance;
+        baseDue = parseFloat(selected.getAttribute("data-due")) || 0;
 
         currencyField.value = currency;
-        dueAmount.value = baseDue;
+        dueAmount.value = baseDue.toFixed(2);
         payAmount.value = "";
     });
 

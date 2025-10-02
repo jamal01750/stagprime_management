@@ -4,47 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\MonthlyOfflineCost;
 use Illuminate\Http\Request;
-use App\Models\CreditOrDebit;
+use App\Models\Notification;
 use App\Models\OfflineCostCategory;
 
 class OfflineCostController extends Controller
 {
-    // public function index(Request $request)
-    // {
-    //     $year   = (int)($request->query('year') ?? now('Asia/Dhaka')->year);
-    //     $month = (int)($request->query('month') ?? now('Asia/Dhaka')->month);
-    //     $categories = OfflineCostCategory::all();
-        
-    //     // Get monthly expenses
-    //     $expenses = MonthlyOfflineCost::get()
-    //         ->where('year', $year)
-    //         ->where('month', $month);
-            
-
-    //     // Attach paid date & status
-    //     foreach ($expenses as $expense) {
-    //         $paid = CreditOrDebit::where('subcategory_id', $expense->sub_category_id)
-    //             ->whereYear('date', $year)
-    //             ->whereMonth('date', $month)
-    //             ->where('type', 'debit')
-    //             ->where('category', 'offline')
-    //             ->first();
-    //         $expense->paid_date = $paid?->date;
-    //         $expense->paid_amount = $paid?->amount ?? 0;
-    //         $expense->status = $paid ? 'Paid' : 'Unpaid';
-
-    //         // $sub_category = $subcategories->firstWhere('id', $expense->sub_category_id);
-    //         // $expense->sub_category_name = $sub_category ? $sub_category->sub_category : 'Unknown';
-    //     }
-
-    //     return view('monthly_offline_cost',[
-    //         'month' => $month,
-    //         'year' => $year,
-    //         'categories' => $categories,
-    //         'expenses' => $expenses,
-    //     ]);
-
-    // }
 
     // Add a new offline cost category
     public function offlineCostCategory(Request $request)
@@ -146,7 +110,6 @@ class OfflineCostController extends Controller
         ]);
     }
 
-
     public function update(Request $request, $id)
     {
         $request->validate([
@@ -158,10 +121,23 @@ class OfflineCostController extends Controller
         $expense->paid_date = $request->status === 'paid' ? now('Asia/Dhaka') : null;
         $expense->save();
 
+        // 2. Query the new universal notifications table
+        $notificationQuery = Notification::where('notifiable_id', $expense->id)
+                                ->where('notifiable_type', MonthlyOfflineCost::class);
+
         if ($expense->status === 'paid') {
-            \App\Models\OfflinePaymentNotification::where('monthly_offline_cost_id',$expense->id)
-                ->where('status','active')
-                ->update(['status'=>'cleared','cleared_at'=>now('Asia/Dhaka')]);
+            // If the expense is marked as paid, clear the related notification.
+            $notificationQuery->update([
+                'status' => 'cleared',
+                'cleared_at' => now('Asia/Dhaka')
+            ]);
+        } else {
+            // If the expense is marked as unpaid again, reactivate the notification.
+            // The scheduled command will then update its level and days_left on the next run.
+            $notificationQuery->update([
+                'status' => 'active',
+                'cleared_at' => null
+            ]);
         }
 
         return redirect()->route('offline.cost.report')->with('success', 'Expense status updated successfully.');

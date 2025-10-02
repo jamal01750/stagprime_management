@@ -19,5 +19,10 @@ class MonthlyOnlineCost extends Model
         'description',
     ];
 
+    public function category()
+    {
+        return $this->belongsTo(OnlineCostCategory::class, 'category_id');
+    }
+
     
 }

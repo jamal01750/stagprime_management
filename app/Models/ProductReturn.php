@@ -4,13 +4,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class ProductLoss extends Model
+class ProductReturn extends Model
 {
     protected $fillable = [
         'product_category_id',
         'quantity',
         'amount_type',
-        'loss_amount',
+        'amount',
         'description',
         'status',
     ];

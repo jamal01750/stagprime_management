@@ -48,9 +48,9 @@
                 <label class="block text-gray-700 font-medium mb-1">Role:</label>
                 <select name="role" required class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 bg-gray-50">
                     <option value="" disabled selected>Select Role</option>
-                    @foreach($roles as $role)
-                        <option value="{{ $role->role_name }}">{{ $role->role_name }}</option>
-                    @endforeach
+                    <option value="admin">Admin</option>
+                    <option value="manager">Manager</option>
+                    
                 </select>
                 @if($errors->has('role'))
                     <p style="color:red">{{ $errors->first('role') }}</p>

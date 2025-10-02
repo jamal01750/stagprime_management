@@ -73,8 +73,10 @@
                     <td class="p-2 border text-right">{{ number_format($cat['revenue'],2) }}</td>
                     <td class="p-2 border text-right">{{ number_format($cat['loss'],2) }}</td>
                     <td class="p-2 border">
-                        <a href="{{ route('product.report', ['filter'=>$filter,'category_id'=>$cat['id']]) }}"
-                           class="px-3 py-1 bg-blue-500 text-white rounded">View Details</a>
+                        <a href="{{ request()->fullUrlWithQuery(['category_id' => $cat['id']]) }}"
+                            class="px-3 py-1 bg-blue-500 text-white rounded">
+                            View Details
+                        </a>
                     </td>
                 </tr>
                 @endforeach

@@ -13,5 +13,10 @@ class CompanyProject extends Model
         'description',
     ];
 
+    public function transactions()
+    {
+        return $this->hasMany(CompanyProjectTransaction::class, 'project_id');
+    }
+
     
 }

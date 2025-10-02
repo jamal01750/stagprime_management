@@ -243,27 +243,92 @@ Route::middleware('auth')->group(function () {
     // Product Summary
     Route::get('/product/summary', [ProductController::class, 'index'])
     ->name('product.summary');
-    //add Product
-    Route::get('/product/add', [ProductController::class, 'create'])
-    ->name('product.add');
-    // Product Category
-    Route::post('/product/category/store', [ProductController::class, 'storeCategory'])
-    ->name('product.category.store');
-    // Store Product
-    Route::post('/product/store', [ProductController::class, 'store'])
-    ->name('product.store');
-    // Sell Product
-    Route::get('/product/sell', [ProductController::class, 'sell'])
-    ->name('product.sell');
-    // Store Sold Product
-    Route::post('/product/sell/store', [ProductController::class, 'storeSoldProduct'])
-    ->name('product.sell.store');
-    // Loss Product
-    Route::get('/product/loss', [ProductController::class, 'loss'])
-    ->name('product.loss');
-    // Store Loss Product
-    Route::post('/product/loss/store', [ProductController::class, 'storeLossProduct'])
-    ->name('product.loss.store');
+
+    //Product Category
+        Route::get('/product/category', [ProductController::class, 'category'])
+        ->name('product.category');
+        // Product Category Store
+        Route::post('/product/category/store', [ProductController::class, 'storeCategory'])
+        ->name('product.category.store');
+        // Product Category Edit
+        Route::get('/categories/{id}/edit', [ProductController::class, 'editCategory'])
+        ->name('product.category.edit');
+        // Product Category Update
+        Route::put('/categories/{id}', [ProductController::class, 'updateCategory'])
+        ->name('product.category.update');
+        // Product Category Delete
+        Route::delete('/categories/{id}', [ProductController::class, 'destroyCategory'])
+        ->name('product.category.destroy');
+        
+    //Product
+        Route::get('/product/add', [ProductController::class, 'create'])
+        ->name('product.add');
+        // Store Product
+        Route::post('/products/store', [ProductController::class, 'store'])
+        ->name('product.store');
+        // Product Edit
+        Route::get('/products/{id}/edit', [ProductController::class, 'editProduct'])
+        ->name('product.edit');
+        // Update Product
+        Route::put('/products/{id}', [ProductController::class, 'updateProduct'])
+        ->name('product.update');
+        // Product Delete
+        Route::delete('/products/{id}', [ProductController::class, 'destroyProduct'])
+        ->name('product.destroy');
+        // Approve Product
+        Route::post('/products/{id}/approve', [ProductController::class, 'approveProduct'])
+        ->name('product.approve');
+
+    // Sell Products
+        Route::get('/products/sell', [ProductController::class, 'sell'])
+        ->name('product.sell');
+        Route::post('/products/sell/store', [ProductController::class, 'storeSoldProduct'])
+        ->name('product.sell.store');
+
+        Route::get('/products/sell/{id}/edit', [ProductController::class, 'editSale'])
+        ->name('product.sell.edit');
+        Route::put('/products/sell/{id}', [ProductController::class, 'updateSale'])
+        ->name('product.sell.update');
+        Route::delete('/products/sell/{id}', [ProductController::class, 'destroySale'])
+        ->name('product.sell.destroy');
+
+        Route::post('/products/sell/{id}/approve', [ProductController::class, 'approveSale'])
+        ->name('product.sell.approve');
+
+    // Loss Products
+        Route::get('/products/loss', [ProductController::class, 'loss'])
+        ->name('product.loss');
+        Route::post('/products/loss/store', [ProductController::class, 'storeLossProduct'])
+        ->name('product.loss.store');
+
+        Route::get('/products/loss/{id}/edit', [ProductController::class, 'editLoss'])
+        ->name('product.loss.edit');
+        Route::put('/products/loss/{id}', [ProductController::class, 'updateLoss'])
+        ->name('product.loss.update');
+        Route::delete('/products/loss/{id}', [ProductController::class, 'destroyLoss'])
+        ->name('product.loss.destroy');
+
+        Route::post('/products/loss/{id}/approve', [ProductController::class, 'approveLoss'])
+        ->name('product.loss.approve');
+
+
+    // Return Products
+        Route::get('/products/return', [ProductController::class, 'return'])
+        ->name('product.return');
+        Route::post('/products/return/store', [ProductController::class, 'storeReturnProduct'])
+        ->name('product.return.store');
+
+        Route::get('/products/return/{id}/edit', [ProductController::class, 'editReturn'])
+        ->name('product.return.edit');
+        Route::put('/products/return/{id}', [ProductController::class, 'updateReturn'])
+        ->name('product.return.update');
+        Route::delete('/products/return/{id}', [ProductController::class, 'destroyReturn'])
+        ->name('product.return.destroy');
+
+        Route::post('/products/return/{id}/approve', [ProductController::class, 'approveReturn'])
+        ->name('product.return.approve');
+
+
     // Product Report
     Route::get('/product/report', [ProductController::class, 'report'])
     ->name('product.report');

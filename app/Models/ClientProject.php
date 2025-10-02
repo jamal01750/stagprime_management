@@ -14,6 +14,8 @@ class ClientProject extends Model
         'end_date',
         'contract_amount',
         'advance_amount',
+        'due_amount',
+        'status',
     ];
 
     public function transactions()

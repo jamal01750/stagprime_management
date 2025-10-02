@@ -16,6 +16,10 @@
                     <option value="installment" {{ $category == 'installment' ? 'selected' : '' }}>Installment</option>
                     <option value="intern" {{ $category == 'intern' ? 'selected' : '' }}>Intern Salary</option>
                     <option value="staff" {{ $category == 'staff' ? 'selected' : '' }}>Staff Salary</option>
+                    <option value="debit" {{ $category == 'debit' ? 'selected' : '' }}>Current Debit</option>
+                    <!-- <option value="loss" {{ $category == 'loss' ? 'selected' : '' }}>Product Loss</option> -->
+                    <option value="company_project" {{ $category == 'company_project' ? 'selected' : '' }}>Company Project</option>
+                    <option value="client_project" {{ $category == 'client_project' ? 'selected' : '' }}>Client Project</option>
                 </select>
             </form>
         </div>

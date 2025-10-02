@@ -17,8 +17,10 @@ return new class extends Migration
                 ->constrained('product_categories')
                 ->onDelete('cascade');
             $table->integer('quantity')->default(0);
+            $table->enum('amount_type', ['dollar', 'taka'])->default('dollar');
             $table->decimal('loss_amount', 10, 2)->default(0.00);
             $table->string('description')->nullable();
+            $table->enum('status', ['approved', 'pending'])->default('pending');
             $table->timestamps();
         });
     }

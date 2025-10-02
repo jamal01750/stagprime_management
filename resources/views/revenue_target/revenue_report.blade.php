@@ -16,6 +16,7 @@
                     <option value="student_admission" {{ $category == 'student_admission' ? 'selected' : '' }}>Student Admission</option>
                     <option value="company_project" {{ $category == 'company_project' ? 'selected' : '' }}>Company Project</option>
                     <option value="client_project" {{ $category == 'client_project' ? 'selected' : '' }}>Client Project</option>
+                    <option value="credit" {{ $category == 'credit' ? 'selected' : '' }}>Current Credit</option>
                 </select>
             </form>
         </div>

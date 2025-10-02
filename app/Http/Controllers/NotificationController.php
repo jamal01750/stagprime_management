@@ -2,37 +2,67 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\OfflinePaymentNotification;
 use App\Models\PriorityNotification;
+use App\Models\Notification;
+use Illuminate\Http\Request;
 
 class NotificationController extends Controller
 {
+
     public function index()
     {
-        $red = OfflinePaymentNotification::with('monthlyOfflineCost.category')
-            ->where('level','red')
-            ->where('status','active')
-            ->latest()
-            ->paginate(5, ['*'], 'red_page');
+        
+        $red = Notification::where('status', 'active')
+            ->where('level', 'red')
+            ->orderBy('updated_level_at', 'desc')
+            ->paginate(5, ['*'], 'red_page'); // Paginating the query
 
-        $yellow = OfflinePaymentNotification::with('monthlyOfflineCost.category')
-            ->where('level','yellow')
-            ->where('status','active')
-            ->latest()
-            ->paginate(5, ['*'], 'yellow_page');
+        $blue = Notification::where('status', 'active')
+            ->where('level', 'blue')
+            ->orderBy('updated_level_at', 'desc')
+            ->paginate(5, ['*'], 'blue_page'); // Paginating the query
 
-        $green = OfflinePaymentNotification::with('monthlyOfflineCost.category')
-            ->where('level','green')
-            ->where('status','active')
-            ->latest()
-            ->paginate(5, ['*'], 'green_page');
-
+        $green = Notification::where('status', 'active')
+            ->where('level', 'green')
+            ->orderBy('updated_level_at', 'desc')
+            ->paginate(5, ['*'], 'green_page'); // Paginating the query
+        
         // ✅ Add priority notifications
         $priority = PriorityNotification::with('product')
             ->where('is_active', true)
             ->latest()
             ->paginate(5, ['*'], 'priority_page');
 
-        return view('notifications.index', compact('red','yellow','green','priority'));
+        return view('notifications.index', compact('red','blue','green','priority'));
+    
     }
+    
+
+    public function markAsCleared($id)
+    {
+        $notification = Notification::findOrFail($id);
+        $notification->update([
+            'status' => 'cleared',
+            'cleared_at' => now()
+        ]);
+
+        return redirect()->back()->with('success', 'Notification marked as cleared.');
+    }
+
+    
+    
+
 }
+
+
+
+
+
+
+
+
+
+
+    
+
+
