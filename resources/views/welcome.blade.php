@@ -104,17 +104,16 @@
                     <table class="w-full text-sm">
                          <thead class="text-xs text-gray-700 uppercase bg-gray-50">
                             <tr>
-                                <th scope="col" class="px-4 py-3 text-left">Details</th>
+                                <th scope="col" class="px-4 py-3 text-left">Date</th>
+                                <th scope="col" class="px-4 py-3 text-left">Description</th>
                                 <th scope="col" class="px-4 py-3 text-right">Amount</th>
                             </tr>
                         </thead>
                         <tbody>
                             @forelse($recentTransactions as $transaction)
                             <tr class="border-b hover:bg-gray-50">
-                                <td class="px-4 py-3">
-                                    <div class="text-xs text-gray-400">{{ \Carbon\Carbon::parse($transaction['date'])->format('d M, Y') }}</div>
-                                    <div class="font-medium text-gray-800">{{ $transaction['description'] }}</div>
-                                </td>
+                                <td class="px-4 py-3">{{ \Carbon\Carbon::parse($transaction['date'])->format('d M, Y') }}</td>
+                                <td class="px-4 py-3 font-medium">{{ $transaction['description'] }}</td>
                                 <td class="px-4 py-3 text-right font-semibold {{ $transaction['type'] == 'Revenue' ? 'text-green-600' : 'text-red-600' }}">
                                     {{ $transaction['type'] == 'Expense' ? '-' : '+' }} ৳{{ number_format($transaction['amount'], 0) }}
                                 </td>

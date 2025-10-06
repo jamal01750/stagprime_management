@@ -17,6 +17,7 @@ return new class extends Migration
             $table->date('salary_date'); // For which month
             $table->decimal('amount', 12, 2);
             $table->enum('status', ['Unpaid', 'Paid'])->default('Unpaid');
+            $table->enum('approve_status', ['pending', 'approved'])->default('pending');
             $table->date('paid_date')->nullable();
             $table->string('payment_method')->nullable();
             $table->text('note')->nullable();

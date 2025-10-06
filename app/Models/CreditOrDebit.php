@@ -15,6 +15,7 @@ class CreditOrDebit extends Model
         'type',
         'amount',
         'description',
+        'approve_status',
     ];
     protected $hidden = [
         'created_at',

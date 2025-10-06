@@ -16,6 +16,7 @@ class ClientProjectDebit extends Model
         'due_amount',
         'pay_date',
         'next_date',
+        'approve_status',
         'status',
     ];
 

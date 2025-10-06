@@ -14,6 +14,7 @@ class StaffSalary extends Model
         'salary_date',
         'amount',
         'status',
+        'approve_status',
         'paid_date',
         'payment_method',
         'note'

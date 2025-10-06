@@ -11,6 +11,7 @@ class PriorityProduct extends Model
         'quantity',
         'amount',
         'description',
+        'approve_status',
         'is_purchased',
     ];
 

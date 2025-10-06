@@ -34,20 +34,16 @@ Schedule::command('notifications:generate-all')
     ->timezone('Asia/Dhaka');
 
 // Auto-generate StaffSalary on 1st of every month at 00:05 AM
-Schedule::call(function () {
-    $staffList = Staff::all();
-    foreach ($staffList as $staff) {
-        StaffSalary::firstOrCreate(
-            [
-                'staff_id'    => $staff->id,
-                'salary_date' => now()->startOfMonth()->day(7)->toDateString(),
-            ],
-            [
-                'amount' => $staff->amount,
-            ]
-        );
-    }
-})->monthlyOn(1, '00:05')->timezone('Asia/Dhaka');
+Schedule::command('app:generate-staff-salary')
+    ->monthlyOn(1, '00:05')
+    ->timezone('Asia/Dhaka')
+    ->onSuccess(function () {
+        Log::info('Staff salaries generated successfully.');
+    })
+    ->onFailure(function () {
+        Log::error('Staff salary generation failed.');
+    });
+
 
 // Auto-generate MonthlyTarget on 1st of every month at 00:10 AM
 Schedule::command('target:generate')

@@ -15,6 +15,7 @@ return new class extends Migration
             $table->decimal('due_amount', 15, 2);
             $table->date('pay_date');
             $table->date('next_date')->nullable();
+            $table->enum('approve_status', ['pending', 'approved'])->default('pending');
             $table->enum('status', ['unpaid','paid'])->default('unpaid');
             $table->timestamps();
         });

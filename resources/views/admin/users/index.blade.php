@@ -29,7 +29,7 @@
     </button>
 </div>
 
-<table class="w-full bg-white shadow-md rounded-lg overflow-hidden border border-gray-200 items-center text-left mt-5">
+<table class="w-full px-4 bg-white shadow-md rounded-lg overflow-hidden border border-gray-200 items-center text-left mt-5">
     <tr>
         <th>Name</th>
         <th>Email</th>
@@ -41,7 +41,7 @@
         <td>{{ $user->name }}</td>
         <td>{{ $user->email }}</td>
         <td>{{ ucfirst($user->role) }}</td>
-        <td>
+        <td class="">
             <form method="POST" action="{{ route('admin.users.destroy', $user) }}" onsubmit="return confirm('Delete this user?')">
                 @csrf
                 @method('DELETE')

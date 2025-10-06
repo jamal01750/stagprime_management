@@ -17,6 +17,9 @@ class MonthlyOnlineCost extends Model
         'amount_type',
         'amount',
         'description',
+        'paid_date',
+        'status',
+        'approve_status',
     ];
 
     public function category()

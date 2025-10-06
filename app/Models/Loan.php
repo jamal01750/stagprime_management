@@ -13,6 +13,7 @@ class Loan extends Model
         'installment_type',
         'installment_amount',
         'due_amount',
+        'approve_status',
     ];
 
     public function installments()

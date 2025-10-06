@@ -32,6 +32,7 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->enum('payment_status', ['Full paid', 'Partial'])->default('Partial');
             $table->enum('active_status', ['Running', 'Expired'])->default('Running');
+            $table->enum('approve_status', ['pending', 'approved'])->default('pending');
             $table->timestamps();
 
         });

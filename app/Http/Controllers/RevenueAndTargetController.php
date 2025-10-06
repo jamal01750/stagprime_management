@@ -11,6 +11,7 @@ use App\Models\Installment;
 use App\Models\InternshipRegistration;
 use App\Models\MonthlyOfflineCost;
 use App\Models\MonthlyOnlineCost;
+use App\Models\ProductReturn;
 use App\Models\ProductSale;
 use App\Models\StaffSalary;
 use App\Models\Student;
@@ -24,6 +25,7 @@ class RevenueAndTargetController extends Controller
         $currentDate = Carbon::now();
         $currentYear = $currentDate->year;
         $currentMonth = $currentDate->month;
+        $dollarToTakaRate = session('result'); 
 
         // --- 1. Fetch This Month's Fixed Target ---
         $target = MonthlyTarget::where('year', $currentYear)->where('month', $currentMonth)->first();
@@ -33,7 +35,17 @@ class RevenueAndTargetController extends Controller
         $totalRevenue = 0;
         $revenueByCategory = [];
 
-        $revenueByCategory['Product Sales'] = ProductSale::whereYear('paid_date', $currentYear)->whereMonth('paid_date', $currentMonth)->sum('amount');
+        $productRevenue = 0;
+        $sales = ProductSale::where('status', 'paid')->whereYear('paid_date', $currentYear)->whereMonth('paid_date', $currentMonth)->get();
+        foreach($sales as $sale) {
+            $productRevenue += ($sale->amount_type == 'dollar') ? $sale->amount * $dollarToTakaRate : $sale->amount;
+        }
+        $returns = ProductReturn::where('status', 'approved')->whereYear('updated_at', $currentYear)->whereMonth('updated_at', $currentMonth)->get();
+        foreach($returns as $return) {
+            $productRevenue -= ($return->amount_type == 'dollar') ? $return->amount * $dollarToTakaRate : $return->amount;
+        }
+
+        $revenueByCategory['Product Sales'] = $productRevenue;
         
         $studentAdmissionRevenue = Student::whereYear('admission_date', $currentYear)->whereMonth('admission_date', $currentMonth)->sum('paid_amount')
                                  + StudentPayment::whereYear('pay_date', $currentYear)->whereMonth('pay_date', $currentMonth)->sum('pay_amount');
@@ -48,7 +60,6 @@ class RevenueAndTargetController extends Controller
 
         // --- 3. Calculate TOTAL LIVE EXPENSE for the Current Month ---
         $totalExpense = 0;
-        $dollarToTakaRate = session('result'); // Assuming this is set somewhere in your application
 
         $totalExpense += MonthlyOfflineCost::whereYear('paid_date', $currentYear)->whereMonth('paid_date', $currentMonth)->sum('amount');
         
@@ -335,6 +346,7 @@ class RevenueAndTargetController extends Controller
         // Set date context for the report
         $currentMonth = Carbon::now()->month;
         $currentYear = Carbon::now()->year;
+        $dollarToTakaRate = session('result'); 
 
         $collectedRevenue = 0;
         $pendingRevenue = 0;
@@ -348,24 +360,40 @@ class RevenueAndTargetController extends Controller
         switch ($category) {
             case 'product_sell':
                 // Collected Revenue: Sum of amounts from paid sales this month
-                $collectedRevenue = ProductSale::whereYear('paid_date', $currentYear)
-                    ->whereMonth('paid_date', $currentMonth)
-                    ->sum('amount');
+                $productRevenue = 0;
+                $sales = ProductSale::where('status', 'paid')->whereYear('paid_date', $currentYear)->whereMonth('paid_date', $currentMonth)->get();
+                foreach($sales as $sale) {
+                    $productRevenue += ($sale->amount_type == 'dollar') ? $sale->amount * $dollarToTakaRate : $sale->amount;
+                }
+                $returns = ProductReturn::where('status', 'approved')->whereYear('updated_at', $currentYear)->whereMonth('updated_at', $currentMonth)->get();
+                foreach($returns as $return) {
+                    $productRevenue -= ($return->amount_type == 'dollar') ? $return->amount * $dollarToTakaRate : $return->amount;
+                }
+                $collectedRevenue = $productRevenue;
 
                 // Pending Revenue: Sum of amounts from unpaid sales due this month
-                $pendingRevenue = ProductSale::whereYear('due_date', $currentYear)
-                    ->whereMonth('due_date', $currentMonth)
+                $pendingRevenue = 0;
+                $pendingSales = ProductSale::whereYear('created_at', $currentYear)
+                    ->whereMonth('created_at', $currentMonth)
                     ->where('status', 'unpaid')
-                    ->sum('amount');
+                    ->get();
+                foreach ($pendingSales as $sale) {
+                    $pendingRevenue += ($sale->amount_type == 'dollar') ? $sale->amount * $dollarToTakaRate : $sale->amount;
+                }
 
                 // Graph Data: Daily collection from product sales
-                $paidSales = ProductSale::whereYear('paid_date', $currentYear)
-                    ->whereMonth('paid_date', $currentMonth)
-                    ->get();
-                foreach ($paidSales as $sale) {
+                foreach ($sales as $sale) {
+                    $amountInTaka = ($sale->amount_type == 'dollar') ? $sale->amount * $dollarToTakaRate : $sale->amount;
                     $day = Carbon::parse($sale->paid_date)->day;
                     if (isset($dailyRevenue[$day])) {
-                        $dailyRevenue[$day] += $sale->amount;
+                        $dailyRevenue[$day] += $amountInTaka;
+                    }
+                }
+                foreach ($returns as $return) {
+                    $amountInTaka = ($return->amount_type == 'dollar') ? $return->amount * $dollarToTakaRate : $return->amount;
+                    $day = Carbon::parse($return->updated_at)->day;
+                    if (isset($dailyRevenue[$day])) {
+                        $dailyRevenue[$day] -= $amountInTaka;
                     }
                 }
                 break;

@@ -19,6 +19,7 @@ return new class extends Migration
             $table->date('join_date');
             $table->decimal('amount', 10, 2);
             $table->text('description')->nullable();
+            $table->enum('approve_status', ['pending', 'approved'])->default('pending');
             $table->timestamps();
         });
     }

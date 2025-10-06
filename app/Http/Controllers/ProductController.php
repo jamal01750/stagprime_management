@@ -14,14 +14,51 @@ class ProductController extends Controller
 {
     public function index()
     {
+        $exchangeRate = session('result', 1); // Default to 1 if not set
+        $saleQty  = ProductSale::where('status', 'paid')->sum('quantity');
+        $returQty = ProductReturn::where('status', 'approved')->sum('quantity');
+        $saleQuantity = $saleQty - $returQty;
+        $loosQty = ProductLoss::where('status', 'approved')->sum('quantity');
+        
+        $salesRev = 0;
+        $sales = ProductSale::where('status', 'paid')->get();
+        foreach($sales as $sale) {
+            if ($sale->amount_type === 'dollar') {
+                $salesRev += $sale->amount * $exchangeRate; 
+            } else {
+                $salesRev += $sale->amount; 
+            }
+        }
+
+        $lossAmount = 0;
+        $losses = ProductLoss::where('status', 'approved')->get();
+        foreach($losses as $loss) {
+            if ($loss->amount_type === 'dollar') {
+                $lossAmount += $loss->loss_amount * $exchangeRate;
+            } else {
+                $lossAmount += $loss->loss_amount;
+            }
+        }
+
+        $returnRev = 0;
+        $returns = ProductReturn::where('status', 'approved')->get();
+        foreach($returns as $return) {
+            if ($return->amount_type === 'dollar') {
+                $returnRev += $return->amount * $exchangeRate;
+            } else {
+                $returnRev += $return->amount;
+            }
+        }
+        $totalRevenue = $salesRev - $returnRev;
+        
         $totals = [
             'total_stock'   => ProductCategory::sum('total_quantity'),
             'current_stock' => ProductCategory::sum('quantity'),
-            'sell_qty'      => ProductSale::sum('quantity'),
-            'loss_qty'      => ProductLoss::sum('quantity'),
-            'return_qty'    => ProductReturn::sum('quantity'),
-            'revenue'       => ProductSale::sum('amount'),
-            'loss'          => ProductLoss::sum('loss_amount'),
+            'sell_qty'      => $saleQuantity,
+            'loss_qty'      => $loosQty,
+            'return_qty'    => $returQty,
+            'revenue'       => $totalRevenue,
+            'loss'          => $lossAmount,
         ];
 
         return view('products.summary', compact('totals'));
@@ -393,6 +430,7 @@ class ProductController extends Controller
         $startDate = $request->input('start_date');
         $endDate   = $request->input('end_date');
         $categoryId = $request->input('category_id');
+        $exchangeRate = session('result', 1); // Default to 1 if not set
 
         $today = now();
 
@@ -421,20 +459,58 @@ class ProductController extends Controller
     
         // Main summary
         $categories = ProductCategory::with('products')->get()->map(function ($cat) use ($start, $end) {
+            $stocks = Product::where('product_category_id', $cat->id)
+                ->where('status', 'approved') 
+                ->whereBetween('updated_at', [$start, $end])->get();
             $sales = ProductSale::where('product_category_id', $cat->id)
-                ->whereBetween('created_at', [$start, $end])->get();
+                ->where('status', 'paid') 
+                ->whereBetween('paid_date', [$start, $end])->get();
             $losses = ProductLoss::where('product_category_id', $cat->id)
-                ->whereBetween('created_at', [$start, $end])->get();
+                ->where('status', 'approved') 
+                ->whereBetween('updated_at', [$start, $end])->get();
+            $returns = ProductReturn::where('product_category_id', $cat->id)
+                ->where('status', 'approved') 
+                ->whereBetween('updated_at', [$start, $end])->get();
+
+            $saleQty = $sales->sum('quantity') - $returns->sum('quantity');
+            $currentStock = $stocks->sum('quantity') - $sales->sum('quantity') - $losses->sum('quantity') + $returns->sum('quantity');
+
+            $exchangeRate = session('result', 1);
+            $saleAmount = 0;
+            foreach ($sales as $sale) {
+                if ($sale->amount_type === 'dollar') {
+                    $saleAmount += $sale->amount * $exchangeRate; // Use exchange rate
+                } else {
+                    $saleAmount += $sale->amount;
+                }
+            }
+            foreach ($returns as $return) {
+                if ($return->amount_type === 'dollar') {
+                    $saleAmount -= $return->amount * $exchangeRate; // Use exchange rate
+                } else {
+                    $saleAmount -= $return->amount;
+                }
+            }
+
+            $lossAmount = $losses->sum(function ($loss) use ($exchangeRate) {
+                return $loss->amount_type === 'dollar' ? $loss->loss_amount * $exchangeRate : $loss->loss_amount;
+            });
+
+            $returnAmount = $returns->sum(function ($return) use ($exchangeRate) {
+                return $return->amount_type === 'dollar' ? $return->amount * $exchangeRate : $return->amount;
+            });
 
             return [
                 'id' => $cat->id,
                 'name' => $cat->name,
-                'current_stock' => $cat->quantity,
-                'total_stock' => $cat->products->sum('quantity'),
-                'sell_qty' => $sales->sum('quantity'),
+                'current_stock' => $currentStock,
+                'total_stock' => $stocks->sum('quantity'),
+                'sell_qty' => $saleQty,
                 'loss_qty' => $losses->sum('quantity'),
-                'revenue' => $sales->sum('amount'),
-                'loss' => $losses->sum('loss_amount'),
+                'return_qty' => $returns->sum('quantity'),
+                'revenue' => $saleAmount,
+                'loss' => $lossAmount,
+                'return' => $returnAmount,
             ];
         });
 
@@ -443,67 +519,118 @@ class ProductController extends Controller
             'total_stock'   => $categories->sum('total_stock'),
             'sell_qty'      => $categories->sum('sell_qty'),
             'loss_qty'      => $categories->sum('loss_qty'),
+            'return_qty'    => $categories->sum('return_qty'),
             'revenue'       => $categories->sum('revenue'),
             'loss'          => $categories->sum('loss'),
+            'return'        => $categories->sum('return'),
         ];
 
         // Details (same as before, uses $start/$end)
         $details = null;
         $categoryName = null;
         if ($categoryId) {
-            $category = \App\Models\ProductCategory::findOrFail($categoryId);
+            $category = ProductCategory::findOrFail($categoryId);
             $categoryName = $category->name;
-
+            
+            $stocks = Product::where('product_category_id', $categoryId)
+                ->where('status', 'approved') 
+                ->whereBetween('updated_at', [$start, $end])->get();
             $sales = ProductSale::where('product_category_id', $categoryId)
-                ->whereBetween('created_at', [$start, $end])->get();
+                ->where('status', 'paid') 
+                ->whereBetween('paid_date', [$start, $end])->get();
             $losses = ProductLoss::where('product_category_id', $categoryId)
-                ->whereBetween('created_at', [$start, $end])->get();
-            $products = Product::where('product_category_id', $categoryId)->get();
+                ->where('status', 'approved') 
+                ->whereBetween('updated_at', [$start, $end])->get();
+            $returns = ProductReturn::where('product_category_id', $categoryId)
+                ->where('status', 'approved') 
+                ->whereBetween('updated_at', [$start, $end])->get();
 
             $details = collect();
 
             foreach ($sales as $s) {
                 $details->push([
-                    'date' => $s->created_at,
-                    'product_name' => null,
+                    'date' => $s->updated_at,
                     'stock_qty' => null,
+                    's_type' => null,
+                    'stock_amount' => null,
                     'sell_qty' => $s->quantity,
+                    'sa_type' => $s->amount_type,
                     'amount' => $s->amount,
                     'sell_desc' => $s->description,
                     'loss_qty' => null,
+                    'la_type' => null,
                     'loss_amount' => null,
                     'loss_desc' => null,
+                    'return_qty' => null,
+                    'ra_type' => null,
+                    'return_amount' => null,
+                    'return_desc' => null,
                 ]);
             }
 
             foreach ($losses as $l) {
                 $details->push([
-                    'date' => $l->created_at,
-                    'product_name' => null,
+                    'date' => $l->updated_at,
                     'stock_qty' => null,
+                    's_type' => null,
+                    'stock_amount' => null,
                     'sell_qty' => null,
+                    'sa_type' => null,
                     'amount' => null,
                     'sell_desc' => null,
                     'loss_qty' => $l->quantity,
+                    'la_type' => $l->amount_type,
                     'loss_amount' => $l->loss_amount,
                     'loss_desc' => $l->description,
+                    'return_qty' => null,
+                    'ra_type' => null,
+                    'return_amount' => null,
+                    'return_desc' => null,
                 ]);
             }
 
-            foreach ($products as $p) {
+            foreach ($returns as $r) {
                 $details->push([
-                    'date' => $p->created_at,
-                    'product_name' => $p->product_name,
-                    'stock_qty' => $p->quantity,
+                    'date' => $r->updated_at,
+                    'stock_qty' => null,
+                    's_type' => null,
+                    'stock_amount' => null,
                     'sell_qty' => null,
+                    'sa_type' => null,
                     'amount' => null,
                     'sell_desc' => null,
                     'loss_qty' => null,
+                    'la_type' => null,
                     'loss_amount' => null,
                     'loss_desc' => null,
+                    'return_qty' => $r->quantity,
+                    'ra_type' => $r->amount_type,
+                    'return_amount' => $r->amount,
+                    'return_desc' => $r->description,
                 ]);
             }
 
+            foreach ($stocks as $s) {
+                $details->push([
+                    'date' => $s->updated_at,
+                    'stock_qty' => $s->quantity,
+                    's_type' => $s->amount_type,
+                    'stock_amount' => $s->amount,
+                    'sell_qty' => null,
+                    'sa_type' => null,
+                    'amount' => null,
+                    'sell_desc' => null,
+                    'loss_qty' => null,
+                    'la_type' => null,
+                    'loss_amount' => null,
+                    'loss_desc' => null,
+                    'return_qty' => null,
+                    'ra_type' => null,
+                    'return_amount' => null,
+                    'return_desc' => null,
+                ]);
+            }
+            
             $details = $details->sortByDesc('date');
         }
 

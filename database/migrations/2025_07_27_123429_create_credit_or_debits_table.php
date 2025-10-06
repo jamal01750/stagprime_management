@@ -17,6 +17,7 @@ return new class extends Migration
             $table->enum('type', ['credit', 'debit']);
             $table->decimal('amount', 20, 2);
             $table->string('description')->nullable();
+            $table->enum('approve_status', ['pending', 'approved'])->default('pending');
             $table->timestamps();
         });
     }

@@ -12,6 +12,7 @@ class ClientProjectTransaction extends Model
         'type',
         'amount',
         'description',
+        'approve_status',
     ];
 
     public function project()

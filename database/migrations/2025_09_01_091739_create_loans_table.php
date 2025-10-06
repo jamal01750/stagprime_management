@@ -19,6 +19,7 @@ return new class extends Migration
             $table->enum('installment_type', ['month', 'week'])->default('month');
             $table->decimal('installment_amount', 15, 2);
             $table->decimal('due_amount', 15, 2);
+            $table->enum('approve_status', ['pending', 'approved'])->default('pending');
             $table->timestamps();
         });
     }

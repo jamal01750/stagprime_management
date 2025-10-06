@@ -15,6 +15,7 @@ class MonthlyOfflineCost extends Model
         'description',
         'paid_date',
         'status',
+        'approve_status',
     ];
 
     public function category()

@@ -24,6 +24,7 @@ use App\Models\CreditOrDebit;
 use App\Models\PriorityProduct;
 use App\Models\PriorityNotification;
 use App\Models\PriorityProductBudget;
+use App\Models\ProductReturn;
 
 class GenerateMonthlyTarget extends Command
 {
@@ -104,7 +105,18 @@ class GenerateMonthlyTarget extends Command
 
         // --- 3. Calculate Total Revenue for the PREVIOUS month ---
         $this->line('Calculating previous month\'s total revenue...');
-        $totalRevenue += ProductSale::whereYear('paid_date', $calcYear)->whereMonth('paid_date', $calcMonth)->sum('amount');
+        // Initialize product revenue
+        $productRevenue = 0;
+        $sales = ProductSale::where('status', 'paid')->whereYear('paid_date', $calcYear)->whereMonth('paid_date', $calcMonth)->get();
+        foreach($sales as $sale) {
+            $productRevenue += ($sale->amount_type == 'dollar') ? $sale->amount * $dollarToTakaRate : $sale->amount;
+        }
+        $returns = ProductReturn::where('status', 'approved')->whereYear('updated_at', $calcYear)->whereMonth('updated_at', $calcMonth)->get();
+        foreach($returns as $return) {
+            $productRevenue -= ($return->amount_type == 'dollar') ? $return->amount * $dollarToTakaRate : $return->amount;
+        }
+
+        $totalRevenue += $productRevenue;
         $totalRevenue += Student::whereYear('admission_date', $calcYear)->whereMonth('admission_date', $calcMonth)->sum('paid_amount');
         $totalRevenue += StudentPayment::whereYear('pay_date', $calcYear)->whereMonth('pay_date', $calcMonth)->sum('pay_amount');
         $totalRevenue += CompanyProjectTransaction::whereYear('date', $calcYear)->whereMonth('date', $calcMonth)->where('type', 'profit')->sum('amount');

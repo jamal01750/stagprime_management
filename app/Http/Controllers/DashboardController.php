@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use Carbon\Carbon;
 
 // Import All Necessary Models
@@ -19,13 +18,12 @@ use App\Models\MonthlyOnlineCost;
 use App\Models\MonthlyTarget;
 use App\Models\PriorityNotification;
 use App\Models\ProductLoss;
+use App\Models\ProductReturn;
 use App\Models\ProductSale;
 use App\Models\StaffSalary;
 use App\Models\Student;
 use App\Models\StudentPayment;
-use Illuminate\Support\Facades\DB;
 use AshAllenDesign\LaravelExchangeRates\Classes\ExchangeRate;
-use Carbon\Month;
 
 class DashboardController extends Controller
 {
@@ -57,12 +55,21 @@ class DashboardController extends Controller
     private function getAllTimeSummary()
     {
         // 1. Total Revenue (All Time)
-        $totalRevenue = ProductSale::sum('amount')
-            + Student::sum('paid_amount')
+        $totalRevenue = Student::sum('paid_amount')
             + StudentPayment::sum('pay_amount')
             + CompanyProjectTransaction::where('type', 'profit')->sum('amount')
             + ClientProjectTransaction::where('type', 'profit')->sum('amount')
             + CreditOrDebit::where('type', 'credit')->sum('amount');
+
+        $sales = ProductSale::where('status', 'paid')->get();
+        $dollarToTakaRate = $this->getExchangeRate();
+        foreach($sales as $sale) {
+            $totalRevenue += ($sale->amount_type == 'dollar') ? $sale->amount * $dollarToTakaRate : $sale->amount;
+        }
+        $returns = ProductReturn::where('status', 'approved')->get();
+        foreach($returns as $return) {
+            $totalRevenue -= ($return->amount_type == 'dollar') ? $return->amount * $dollarToTakaRate : $return->amount;
+        }
 
         // 2. Total Expense (All Time)
         $totalExpense = MonthlyOfflineCost::where('status', 'paid')->sum('amount')
@@ -117,7 +124,16 @@ class DashboardController extends Controller
         $dollarToTakaRate = $this->getExchangeRate();
 
         // --- REVENUE (This Month) ---
-        $productRevenue = ProductSale::whereYear('paid_date', $year)->whereMonth('paid_date', $month)->sum('amount');
+        $productRevenue = 0;
+        $sales = ProductSale::where('status', 'paid')->whereYear('paid_date', $year)->whereMonth('paid_date', $month)->get();
+        foreach($sales as $sale) {
+            $productRevenue += ($sale->amount_type == 'dollar') ? $sale->amount * $dollarToTakaRate : $sale->amount;
+        }
+        $returns = ProductReturn::where('status', 'approved')->whereYear('updated_at', $year)->whereMonth('updated_at', $month)->get();
+        foreach($returns as $return) {
+            $productRevenue -= ($return->amount_type == 'dollar') ? $return->amount * $dollarToTakaRate : $return->amount;
+        }
+        
         $studentRevenue = Student::whereYear('admission_date', $year)->whereMonth('admission_date', $month)->sum('paid_amount')
                         + StudentPayment::whereYear('pay_date', $year)->whereMonth('pay_date', $month)->sum('pay_amount');
         $ownProjectProfit = CompanyProjectTransaction::whereYear('date', $year)->whereMonth('date', $month)->where('type', 'profit')->sum('amount');
@@ -305,36 +321,68 @@ class DashboardController extends Controller
      */
     private function getRecentTransactions()
     {
-        $credits = CreditOrDebit::where('type', 'credit')->latest()->take(5)->get()
-            ->map(function ($item) {
-                return ['date' => $item->date, 'description' => "Credit", 'amount' => $item->amount, 'type' => 'Revenue'];
-            });
+        $credits = CreditOrDebit::where('type', 'credit')->latest()->take(5)->get();
+        $debits = CreditOrDebit::where('type', 'debit')->latest()->take(5)->get();
+        $offlineCosts = MonthlyOfflineCost::latest('paid_date')->take(5)->get();
+        $sales = ProductSale::latest('paid_date')->take(5)->get();
+        $studentPayments = StudentPayment::latest('pay_date')->take(5)->get();
 
-        $debits = CreditOrDebit::where('type', 'debit')->latest()->take(5)->get()
-            ->map(function ($item) {
-                return ['date' => $item->date, 'description' => "Debit", 'amount' => $item->amount, 'type' => 'Expense'];
-            });
+        // Ensure these are always collections
+        $credits = $credits ?? collect();
+        $debits = $debits ?? collect();
+        $offlineCosts = $offlineCosts ?? collect();
+        $sales = $sales ?? collect();
+        $studentPayments = $studentPayments ?? collect();
 
-        $offlineCosts = MonthlyOfflineCost::latest('paid_date')->take(5)->get()
-            ->map(function ($item) {
-                return ['date' => $item->paid_date, 'description' => "Offline Cost", 'amount' => $item->amount, 'type' => 'Expense'];
-            });
+        // Now map safely
+        $credits = $credits->map(fn($item) => [
+            'date' => $item->date,
+            'description' => "Credit",
+            'amount' => $item->amount,
+            'type' => 'Revenue'
+        ]);
 
-        $sales = ProductSale::latest('paid_date')->take(5)->get()
-            ->map(function ($item) {
-                return ['date' => $item->paid_date, 'description' => "Product Sale", 'amount' => $item->amount, 'type' => 'Revenue'];
-            });
-        
-        $studentPayments = StudentPayment::latest('pay_date')->take(5)->get()
-            ->map(function ($item) {
-                return ['date' => $item->pay_date, 'description' => "Student Payment", 'amount' => $item->pay_amount, 'type' => 'Revenue'];
-            });
+        $debits = $debits->map(fn($item) => [
+            'date' => $item->date,
+            'description' => "Debit",
+            'amount' => $item->amount,
+            'type' => 'Expense'
+        ]);
 
-        $allTransactions = $credits->merge($debits)->merge($offlineCosts)->merge($sales)->merge($studentPayments);
+        $offlineCosts = $offlineCosts->map(fn($item) => [
+            'date' => $item->paid_date,
+            'description' => "Offline Cost",
+            'amount' => $item->amount,
+            'type' => 'Expense'
+        ]);
 
-        return $allTransactions->sortByDesc('date')->take(10);
+        $sales = $sales->map(fn($item) => [
+            'date' => $item->paid_date,
+            'description' => "Product Sale",
+            'amount' => $item->amount_type == 'dollar' ? $item->amount * $this->getExchangeRate() : $item->amount,
+            'type' => 'Revenue'
+        ]);
+
+        $studentPayments = $studentPayments->map(fn($item) => [
+            'date' => $item->pay_date,
+            'description' => "Student Payment",
+            'amount' => $item->pay_amount,
+            'type' => 'Revenue'
+        ]);
+
+        // Merge safely
+        $allTransactions = collect()
+            ->merge($credits)
+            ->merge($debits)
+            ->merge($offlineCosts)
+            ->merge($sales)
+            ->merge($studentPayments);
+
+        // Sort and return
+        return $allTransactions->sortByDesc('date')->take(10)->values();
     }
-    
+
+
     // --- HELPER FUNCTIONS ---
 
     private function getExchangeRate() {
@@ -378,7 +426,18 @@ class DashboardController extends Controller
     }
 
     private function calculateMonthlyRevenue($year, $month) {
-        return ProductSale::whereYear('paid_date', $year)->whereMonth('paid_date', $month)->sum('amount')
+        $dollarToTakaRate = $this->getExchangeRate();
+        $productRevenue = 0;
+        $sales = ProductSale::where('status', 'paid')->whereYear('paid_date', $year)->whereMonth('paid_date', $month)->get();
+        foreach($sales as $sale) {
+            $productRevenue += ($sale->amount_type == 'dollar') ? $sale->amount * $dollarToTakaRate : $sale->amount;
+        }
+        $returns = ProductReturn::where('status', 'approved')->whereYear('updated_at', $year)->whereMonth('updated_at', $month)->get();
+        foreach($returns as $return) {
+            $productRevenue -= ($return->amount_type == 'dollar') ? $return->amount * $dollarToTakaRate : $return->amount;
+        }
+
+        return $productRevenue
             + Student::whereYear('admission_date', $year)->whereMonth('admission_date', $month)->sum('paid_amount')
             + StudentPayment::whereYear('pay_date', $year)->whereMonth('pay_date', $month)->sum('pay_amount')
             + CompanyProjectTransaction::whereYear('date', $year)->whereMonth('date', $month)->where('type', 'profit')->sum('amount')
@@ -410,7 +469,18 @@ class DashboardController extends Controller
     }
 
     private function getDailyRevenue($date) {
-        return ProductSale::whereDate('paid_date', $date)->sum('amount')
+        $dollarToTakaRate = $this->getExchangeRate();
+        $productRevenue = 0;
+        $sales = ProductSale::where('status', 'paid')->whereDate('paid_date', $date)->get();
+        foreach($sales as $sale) {
+            $productRevenue += ($sale->amount_type == 'dollar') ? $sale->amount * $dollarToTakaRate : $sale->amount;
+        }
+        $returns = ProductReturn::where('status', 'approved')->whereDate('updated_at', $date)->get();
+        foreach($returns as $return) {
+            $productRevenue -= ($return->amount_type == 'dollar') ? $return->amount * $dollarToTakaRate : $return->amount;
+        }
+
+        return $productRevenue
             + Student::whereDate('admission_date', $date)->sum('paid_amount')
             + StudentPayment::whereDate('pay_date', $date)->sum('pay_amount')
             + CompanyProjectTransaction::whereDate('date', $date)->where('type', 'profit')->sum('amount')

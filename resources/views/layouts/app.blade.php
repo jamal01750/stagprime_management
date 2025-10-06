@@ -4,130 +4,119 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-
     <title>@yield('title', 'Stag Prime')</title>
+
     <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
-
     <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
+    <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700&display=swap" rel="stylesheet" />
 
-    {{-- Defer ensures the script executes after the document is parsed --}}
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    {{-- This style hides Alpine elements until they are fully initialized to prevent "flashing" --}}
-    <style>[x-cloak] { display: none !important; }</style>
-    
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
-    {{-- This directive handles loading your compiled CSS and JS assets --}}
+
+    <style>
+        [x-cloak] { display: none !important; }
+    </style>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 
-<body class="font-sans antialiased bg-gray-50 text-gray-900">
-    <div class="w-full min-h-screen flex">
-        {{-- Side Navigation --}}
+<body class="font-sans antialiased bg-slate-50 text-slate-800" x-data="{ sidebarOpen: false }">
+    <div class="flex min-h-screen bg-slate-100/50">
+        
+        <div x-show="sidebarOpen" class="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden" 
+             @click="sidebarOpen = false" x-transition.opacity></div>
+
         @include('layouts.navigation')
 
-        {{-- Main Content Area --}}
-        <main class="w-full p-0 flex flex-col min-h-screen">
-            <header class="flex items-center justify-between px-4 md:px-8 py-4 border-b border-gray-200 bg-white shadow-sm">
-                {{-- Page Title and Heading --}}
-                <div>
-                    <h1 class="text-xl font-bold text-gray-800">Stag Prime Cost Management</h1>
-                    <p class="mt-1 text-sm text-gray-600">@yield('heading')</p>
+        <div class="flex flex-col flex-1 w-full lg:pl-64">
+
+            <header class="sticky top-0 z-30 flex items-center justify-between px-4 py-3 bg-white/80 backdrop-blur-sm border-b border-slate-200 sm:px-6 lg:px-8">
+                <div class="flex items-center space-x-4">
+                    <button @click.stop="sidebarOpen = !sidebarOpen" 
+                            class="p-2 -ml-2 text-slate-600 rounded-lg lg:hidden hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-500">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/>
+                        </svg>
+                    </button>
+
+                    <div>
+                        <h1 class="text-xl font-bold text-slate-800">@yield('heading', 'Dashboard')</h1>
+                        <p class="text-sm text-slate-500">Welcome to Stag Prime Cost Management</p>
+                    </div>
                 </div>
 
-                <div class="flex items-center space-x-6">
-                    <div class="relative" x-data="{ open: false }">
-                        <a href="{{ route('notifications.index') }}" 
-                           class="relative flex items-center" 
-                           @mouseenter="open = true" 
-                           @mouseleave="open = false"
-                           aria-label="View notifications">
-                            
-                            {{-- IMPROVED: Correctly formatted Heroicon SVG for the bell --}}
-                            <svg class="h-6 w-6 text-gray-600 hover:text-green-600 transition-colors duration-200" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <div class="flex items-center space-x-3 sm:space-x-5">
+                    
+                    <div class="relative">
+                        <a href="{{ route('notifications.index') }}" class="relative block p-2 text-slate-500 rounded-full hover:bg-slate-100 hover:text-sky-600" aria-label="View notifications">
+                            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
                             </svg>
-
                             @php
-                                // Best practice: Check if user is authenticated before querying relationships
-                                if (Auth::check()) {
-                                    $allCount = \App\Models\Notification::where('status', 'active')->count();
-                                    $priorityCount = \App\Models\PriorityNotification::where('is_active', true)->count();
-                                    $totalNotifications = $allCount + $priorityCount;
-                                } else {
-                                    $totalNotifications = 0;
-                                }
+                                $totalNotifications = Auth::check() 
+                                    ? \App\Models\Notification::where('status', 'active')->count() + \App\Models\PriorityNotification::where('is_active', true)->count() 
+                                    : 0;
                             @endphp
-
                             @if($totalNotifications >= 0)
-                                <span class="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center bg-red-600 text-white text-xs font-bold rounded-full">
+                                <span class="absolute top-0 right-0 flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-red-600 rounded-full">
                                     {{ $totalNotifications }}
                                 </span>
                             @endif
                         </a>
-                        
-                        <div x-show="open" 
-                             x-cloak 
-                             x-transition
-                             class="absolute bottom-[-35px] left-1/2 -translate-x-1/2 px-2 py-1 text-xs text-white bg-gray-800 rounded-md whitespace-nowrap pointer-events-none">
-                            Notifications
-                        </div>
                     </div>
 
-                    @auth
-                        <div class="relative" x-data="{ open: false }">
-                            <button @click="open = !open"
-                                    class="flex text-sm border-2 border-transparent rounded-full focus:outline-none focus:border-gray-300 transition"
-                                    aria-haspopup="true" 
-                                    :aria-expanded="open"
-                                    aria-label="User menu">
-                                {{-- IMPROVED: Correctly formatted Heroicon SVG for the user avatar --}}
-                                <svg class="h-8 w-8 text-gray-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M17.982 18.725A7.488 7.488 0 0012 15.75a7.488 7.488 0 00-5.982 2.975m11.963 0a9 9 0 10-11.963 0m11.963 0A8.966 8.966 0 0112 21a8.966 8.966 0 01-5.982-2.275M15 9.75a3 3 0 11-6 0 3 3 0 016 0z" />
-                                </svg>
-                            </button>
+                    <div class="hidden sm:block w-px h-6 bg-slate-200"></div>
 
-                            {{-- Dropdown Panel --}}
-                            <div x-show="open"
-                                 x-cloak
-                                 @click.away="open = false"
-                                 x-transition:enter="transition ease-out duration-100"
-                                 x-transition:enter-start="transform opacity-0 scale-95"
-                                 x-transition:enter-end="transform opacity-100 scale-100"
-                                 x-transition:leave="transition ease-in duration-75"
-                                 x-transition:leave-start="transform opacity-100 scale-100"
-                                 x-transition:leave-end="transform opacity-0 scale-95"
-                                 class="absolute right-0 mt-2 w-48 origin-top-right bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
-                                
-                                <div class="px-4 py-3 border-b">
-                                    <p class="text-sm text-gray-800 font-semibold truncate">{{ Auth::user()->name }}</p>
-                                    <p class="text-xs text-gray-500 truncate">{{ Auth::user()->email }}</p>
+                    @auth
+                    <div class="relative" x-data="{ open: false }">
+                        <button @click="open = !open" class="flex items-center space-x-2 text-left focus:outline-none">
+                            <div class="flex items-center justify-center w-10 h-10 text-sm font-bold text-white bg-sky-500 rounded-full">
+                                {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
+                            </div>
+                            <div class="hidden sm:block">
+                                <p class="font-semibold text-slate-800 text-sm truncate">{{ Auth::user()->name }}</p>
+                                <p class="text-xs text-slate-500 capitalize">{{ Auth::user()->role }}</p>
+                            </div>
+                        </button>
+
+                        <div x-show="open" x-cloak @click.away="open = false"
+                             x-transition:enter="transition ease-out duration-100"
+                             x-transition:enter-start="opacity-0 scale-95"
+                             x-transition:enter-end="opacity-100 scale-100"
+                             x-transition:leave="transition ease-in duration-75"
+                             x-transition:leave-start="opacity-100 scale-100"
+                             x-transition:leave-end="opacity-0 scale-95"
+                             class="absolute right-0 mt-2 w-56 origin-top-right bg-white rounded-lg shadow-lg ring-1 ring-black ring-opacity-5 z-50">
+                            <div class="py-1">
+                                <div class="px-4 py-2 border-b border-slate-200">
+                                    <p class="text-sm font-semibold text-slate-800 truncate">{{ Auth::user()->name }}</p>
+                                    <p class="text-xs text-slate-500 truncate">{{ Auth::user()->email }}</p>
                                 </div>
-                                
+                                <!-- <a href="#" class="flex items-center w-full px-4 py-2 text-sm text-left text-slate-700 hover:bg-slate-100">
+                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                                    Profile
+                                </a> -->
                                 <form method="POST" action="{{ route('logout') }}">
                                     @csrf
-                                    <button type="submit"
-                                            class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors">
+                                    <button type="submit" class="flex items-center w-full px-4 py-2 text-sm text-left text-slate-700 hover:bg-slate-100">
+                                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
                                         Log Out
                                     </button>
                                 </form>
                             </div>
                         </div>
+                    </div>
                     @endauth
                 </div>
             </header>
 
-            <section class="flex-1 px-4 md:px-8 py-6 bg-gray-50">
+            <main class="flex-1 p-4 sm:p-6 lg:p-8">
                 @yield('content')
-            </section>
+            </main>
 
-            <footer class="px-4 md:px-8 py-4 text-center text-sm text-gray-500 border-t border-gray-200 bg-white">
+            <footer class="px-4 sm:px-6 lg:px-8 py-4 text-center text-sm text-slate-500 border-t border-slate-200 bg-white">
                 &copy; {{ date('Y') }} Stag Prime Cost Management. All rights reserved.
             </footer>
-        </main>
+        </div>
     </div>
-
-    
 </body>
 </html>

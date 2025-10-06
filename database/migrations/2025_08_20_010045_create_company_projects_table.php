@@ -17,6 +17,7 @@ return new class extends Migration
             $table->date('start_date');
             $table->decimal('initial_amount', 10, 2)->default(0.00);
             $table->text('description')->nullable();
+            $table->enum('approve_status', ['pending', 'approved'])->default('pending');
             $table->timestamps();
         });
     }

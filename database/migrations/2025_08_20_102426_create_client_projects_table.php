@@ -20,6 +20,7 @@ return new class extends Migration
             $table->decimal('contract_amount', 10, 2);
             $table->decimal('advance_amount', 10, 2);
             $table->decimal('due_amount', 10, 2);
+            $table->enum('approve_status', ['pending', 'approved'])->default('pending');
             $table->enum('status', ['paid', 'unpaid'])->default('unpaid');
             $table->timestamps();
         });

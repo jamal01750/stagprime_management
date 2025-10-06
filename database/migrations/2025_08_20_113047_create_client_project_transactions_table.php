@@ -18,6 +18,7 @@ return new class extends Migration
             $table->enum('type', ['invest', 'profit', 'loss']);
             $table->decimal('amount', 10, 2);
             $table->string('description')->nullable();
+            $table->enum('approve_status', ['pending', 'approved'])->default('pending');
             $table->timestamps();
         });
     }

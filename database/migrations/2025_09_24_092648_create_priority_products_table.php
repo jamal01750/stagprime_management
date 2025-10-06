@@ -17,6 +17,7 @@ return new class extends Migration
             $table->integer('quantity')->default(1);; // Quantity of the product
             $table->decimal('amount', 10, 2); // Total amount
             $table->text('description')->nullable(); // Description or note about the product/project
+            $table->enum('approve_status', ['pending', 'approved'])->default('pending');
             $table->boolean('is_purchased')->default(false);
             $table->timestamps();
         });

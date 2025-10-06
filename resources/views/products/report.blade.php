@@ -5,7 +5,7 @@
 
 
 @section('content')
-<div class="p-6 bg-white shadow rounded space-y-6">
+<div class="w-full p-4 md:p-6 bg-white shadow rounded space-y-6">
 
     {{-- Filter --}}
     <form method="GET" class="flex flex-wrap items-center gap-4 mb-6">
@@ -49,29 +49,33 @@
 
     {{-- Main Report Table --}}
     <div class="overflow-x-auto">
-        <table class="min-w-full border">
+        <table class="min-w-full border text-sm md:text-base">
             <thead class="bg-gray-100">
-                <tr>
+                <tr class="text-left">
                     <th class="p-2 border">Category</th>
-                    <th class="p-2 border">Current Stock</th>
-                    <th class="p-2 border">Total Stock</th>
-                    <th class="p-2 border">Sold</th>
-                    <th class="p-2 border">Loss Qty</th>
-                    <th class="p-2 border">Revenue</th>
-                    <th class="p-2 border">Loss</th>
-                    <th class="p-2 border">Action</th>
+                    <th class="p-2 border text-center">Total Stock</th>
+                    <th class="p-2 border text-center">Current Stock</th>
+                    <th class="p-2 border text-center">Sold Qty</th>
+                    <th class="p-2 border text-center">Loss Qty</th>
+                    <th class="p-2 border text-center">Return Qty</th>
+                    <th class="p-2 border text-right">Revenue</th>
+                    <th class="p-2 border text-right">Loss</th>
+                    <th class="p-2 border text-right">Return</th>
+                    <th class="p-2 border text-center">Action</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach($categories as $cat)
                 <tr>
                     <td class="p-2 border">{{ $cat['name'] }}</td>
-                    <td class="p-2 border text-center">{{ $cat['current_stock'] }}</td>
                     <td class="p-2 border text-center">{{ $cat['total_stock'] }}</td>
+                    <td class="p-2 border text-center">{{ $cat['current_stock'] }}</td>
                     <td class="p-2 border text-center">{{ $cat['sell_qty'] }}</td>
                     <td class="p-2 border text-center">{{ $cat['loss_qty'] }}</td>
-                    <td class="p-2 border text-right">{{ number_format($cat['revenue'],2) }}</td>
-                    <td class="p-2 border text-right">{{ number_format($cat['loss'],2) }}</td>
+                    <td class="p-2 border text-center">{{ $cat['return_qty'] }}</td>
+                    <td class="p-2 border text-right">৳{{ number_format($cat['revenue'],2) }}</td>
+                    <td class="p-2 border text-right">৳{{ number_format($cat['loss'],2) }}</td>
+                    <td class="p-2 border text-right">৳{{ number_format($cat['return'],2) }}</td>
                     <td class="p-2 border">
                         <a href="{{ request()->fullUrlWithQuery(['category_id' => $cat['id']]) }}"
                             class="px-3 py-1 bg-blue-500 text-white rounded">
@@ -84,12 +88,14 @@
             <tfoot class="bg-gray-100 font-bold">
                 <tr>
                     <td class="p-2 border">Total</td>
-                    <td class="p-2 border text-center">{{ $totals['current_stock'] }}</td>
                     <td class="p-2 border text-center">{{ $totals['total_stock'] }}</td>
+                    <td class="p-2 border text-center">{{ $totals['current_stock'] }}</td>
                     <td class="p-2 border text-center">{{ $totals['sell_qty'] }}</td>
                     <td class="p-2 border text-center">{{ $totals['loss_qty'] }}</td>
-                    <td class="p-2 border text-right">{{ number_format($totals['revenue'],2) }}</td>
-                    <td class="p-2 border text-right">{{ number_format($totals['loss'],2) }}</td>
+                    <td class="p-2 border text-center">{{ $totals['return_qty'] }}</td>
+                    <td class="p-2 border text-right">৳{{ number_format($totals['revenue'],2) }}</td>
+                    <td class="p-2 border text-right">৳{{ number_format($totals['loss'],2) }}</td>
+                    <td class="p-2 border text-right">৳{{ number_format($totals['return'],2) }}</td>
                     <td class="p-2 border"></td>
                 </tr>
             </tfoot>
@@ -98,40 +104,44 @@
 
     {{-- Details Section --}}
     @if($details)
-    <div class="mt-8">
+    <div class="mt-8 overflow-x-auto">
         <h3 class="text-xl font-bold mb-4">Details for {{ $categoryName }}</h3>
-        <div class="overflow-x-auto">
-            <table class="min-w-full border">
-                <thead class="bg-gray-100">
-                    <tr>
-                        <th class="p-2 border">Date</th>
-                        <th class="p-2 border">Product</th>
-                        <th class="p-2 border">Stock Qty</th>
-                        <th class="p-2 border">Sell Qty</th>
-                        <th class="p-2 border">Amount</th>
-                        <th class="p-2 border">Sell Comment</th>
-                        <th class="p-2 border">Loss Qty</th>
-                        <th class="p-2 border">Loss Amount</th>
-                        <th class="p-2 border">Loss Comment</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($details as $row)
-                    <tr>
-                        <td class="p-2 border">{{ $row['date']->format('Y-m-d') }}</td>
-                        <td class="p-2 border">{{ $row['product_name'] ?? '-' }}</td>
-                        <td class="p-2 border text-center">{{ $row['stock_qty'] ?? '-' }}</td>
-                        <td class="p-2 border text-center">{{ $row['sell_qty'] ?? '-' }}</td>
-                        <td class="p-2 border text-right">{{ $row['amount'] ?? '-' }}</td>
-                        <td class="p-2 border">{{ $row['sell_desc'] ?? '-' }}</td>
-                        <td class="p-2 border text-center">{{ $row['loss_qty'] ?? '-' }}</td>
-                        <td class="p-2 border text-right">{{ $row['loss_amount'] ?? '-' }}</td>
-                        <td class="p-2 border">{{ $row['loss_desc'] ?? '-' }}</td>
-                    </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
+        <table class="min-w-full border text-xs sm:text-sm md:text-base">
+            <thead class="bg-gray-100">
+                <tr>
+                    <th class="p-2 border">Date</th>
+                    <th class="p-2 border text-center">Stock Qty</th>
+                    <th class="p-2 border text-right">Stock Amount</th>
+                    <th class="p-2 border text-center">Sell Qty</th>
+                    <th class="p-2 border text-right">Sell Amount</th>
+                    <th class="p-2 border">Sell Comment</th>
+                    <th class="p-2 border text-center">Loss Qty</th>
+                    <th class="p-2 border text-right">Loss Amount</th>
+                    <th class="p-2 border">Loss Comment</th>
+                    <th class="p-2 border text-center">Return Qty</th>
+                    <th class="p-2 border text-right">Return Amount</th>
+                    <th class="p-2 border">Return Comment</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($details as $row)
+                <tr>
+                    <td class="p-2 border">{{ $row['date']->format('Y-m-d') }}</td>
+                    <td class="p-2 border text-center">{{ $row['stock_qty'] ?? '-' }}</td>
+                    <td class="p-2 border text-center">{{ $row['s_type'] == 'taka' ? '৳' : '$' }}{{ $row['stock_amount'] ?? 0 }}</td>
+                    <td class="p-2 border text-center">{{ $row['sell_qty'] ?? '-' }}</td>
+                    <td class="p-2 border text-right">{{ $row['sa_type'] == 'taka' ? '৳' : '$' }}{{ $row['amount'] ?? 0 }}</td>
+                    <td class="p-2 border">{{ $row['sell_desc'] ?? '-' }}</td>
+                    <td class="p-2 border text-center">{{ $row['loss_qty'] ?? '-' }}</td>
+                    <td class="p-2 border text-right">{{ $row['la_type'] == 'taka' ? '৳' : '$' }}{{ $row['loss_amount'] ?? 0 }}</td>
+                    <td class="p-2 border">{{ $row['loss_desc'] ?? '-' }}</td>
+                    <td class="p-2 border text-center">{{ $row['return_qty'] ?? '-' }}</td>
+                    <td class="p-2 border text-right">{{ $row['ra_type'] == 'taka' ? '৳' : '$' }}{{ $row['return_amount'] ?? 0 }}</td>
+                    <td class="p-2 border">{{ $row['return_desc'] ?? '-' }}</td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
     </div>
     @endif
 

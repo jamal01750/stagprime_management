@@ -15,6 +15,7 @@ class ClientProject extends Model
         'contract_amount',
         'advance_amount',
         'due_amount',
+        'approve_status',
         'status',
     ];
 

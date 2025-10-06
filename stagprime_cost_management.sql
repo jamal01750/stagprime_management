@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Sep 25, 2025 at 05:35 PM
+-- Generation Time: Oct 06, 2025 at 01:09 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -51,7 +51,8 @@ CREATE TABLE `cache` (
 --
 
 INSERT INTO `cache` (`key`, `value`, `expiration`) VALUES
-('laravel-cache-laravel_xr_USD_BDT_2025-09-25', 'd:121.7872173;', 2074174489);
+('laravel-cache-laravel_xr_USD_BDT_2025-10-05', 'd:121.83755354;', 2075034391),
+('laravel-cache-laravel_xr_USD_BDT_2025-10-06', 'd:121.80139304;', 2075106745);
 
 -- --------------------------------------------------------
 
@@ -79,6 +80,9 @@ CREATE TABLE `client_projects` (
   `end_date` date NOT NULL,
   `contract_amount` decimal(10,2) NOT NULL,
   `advance_amount` decimal(10,2) NOT NULL,
+  `due_amount` decimal(10,2) NOT NULL,
+  `approve_status` enum('pending','approved') NOT NULL DEFAULT 'pending',
+  `status` enum('paid','unpaid') NOT NULL DEFAULT 'unpaid',
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -97,6 +101,7 @@ CREATE TABLE `client_project_debits` (
   `due_amount` decimal(15,2) NOT NULL,
   `pay_date` date NOT NULL,
   `next_date` date DEFAULT NULL,
+  `approve_status` enum('pending','approved') NOT NULL DEFAULT 'pending',
   `status` enum('unpaid','paid') NOT NULL DEFAULT 'unpaid',
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
@@ -115,6 +120,7 @@ CREATE TABLE `client_project_transactions` (
   `type` enum('invest','profit','loss') NOT NULL,
   `amount` decimal(10,2) NOT NULL,
   `description` varchar(255) DEFAULT NULL,
+  `approve_status` enum('pending','approved') NOT NULL DEFAULT 'pending',
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -131,6 +137,7 @@ CREATE TABLE `company_projects` (
   `start_date` date NOT NULL,
   `initial_amount` decimal(10,2) NOT NULL DEFAULT 0.00,
   `description` text DEFAULT NULL,
+  `approve_status` enum('pending','approved') NOT NULL DEFAULT 'pending',
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -148,6 +155,7 @@ CREATE TABLE `company_project_transactions` (
   `type` enum('invest','profit','loss') NOT NULL,
   `amount` decimal(10,2) NOT NULL,
   `description` varchar(255) DEFAULT NULL,
+  `approve_status` enum('pending','approved') NOT NULL DEFAULT 'pending',
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -177,6 +185,7 @@ CREATE TABLE `credit_or_debits` (
   `type` enum('credit','debit') NOT NULL,
   `amount` decimal(20,2) NOT NULL,
   `description` varchar(255) DEFAULT NULL,
+  `approve_status` enum('pending','approved') NOT NULL DEFAULT 'pending',
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -210,6 +219,7 @@ CREATE TABLE `installments` (
   `due_amount` decimal(15,2) NOT NULL,
   `pay_date` date NOT NULL,
   `next_date` date DEFAULT NULL,
+  `approve_status` enum('pending','approved') NOT NULL DEFAULT 'pending',
   `status` enum('unpaid','paid') NOT NULL DEFAULT 'unpaid',
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
@@ -242,6 +252,7 @@ CREATE TABLE `internship_registrations` (
   `description` text DEFAULT NULL,
   `payment_status` enum('Full paid','Partial') NOT NULL DEFAULT 'Partial',
   `active_status` enum('Running','Expired') NOT NULL DEFAULT 'Running',
+  `approve_status` enum('pending','approved') NOT NULL DEFAULT 'pending',
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -295,6 +306,7 @@ CREATE TABLE `loans` (
   `installment_type` enum('month','week') NOT NULL DEFAULT 'month',
   `installment_amount` decimal(15,2) NOT NULL,
   `due_amount` decimal(15,2) NOT NULL,
+  `approve_status` enum('pending','approved') NOT NULL DEFAULT 'pending',
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -338,18 +350,19 @@ INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES
 (20, '2025_09_01_102939_create_installments_table', 1),
 (21, '2025_09_02_145243_create_client_project_debits_table', 1),
 (22, '2025_09_04_152001_create_students_table', 1),
-(23, '2025_09_14_114009_create_offline_payment_notifications_table', 1),
-(24, '2025_09_16_144006_create_staff_categories_table', 1),
-(25, '2025_09_16_144044_create_staff_table', 1),
-(26, '2025_09_16_144426_create_staff_salaries_table', 1),
-(27, '2025_09_18_115127_create_product_categories_table', 1),
-(28, '2025_09_18_115204_create_products_table', 1),
-(29, '2025_09_18_142347_create_product_sales_table', 1),
-(30, '2025_09_18_142429_create_product_losses_table', 1),
-(31, '2025_09_20_161109_create_student_payments_table', 1),
-(32, '2025_09_24_092648_create_priority_products_table', 1),
-(33, '2025_09_24_123111_create_priority_notifications_table', 1),
-(34, '2025_09_24_141038_create_priority_product_budgets_table', 1);
+(23, '2025_09_16_144006_create_staff_categories_table', 1),
+(24, '2025_09_16_144044_create_staff_table', 1),
+(25, '2025_09_16_144426_create_staff_salaries_table', 1),
+(26, '2025_09_18_115127_create_product_categories_table', 1),
+(27, '2025_09_18_115204_create_products_table', 1),
+(28, '2025_09_18_142347_create_product_sales_table', 1),
+(29, '2025_09_18_142429_create_product_losses_table', 1),
+(30, '2025_09_20_161109_create_student_payments_table', 1),
+(31, '2025_09_24_092648_create_priority_products_table', 1),
+(32, '2025_09_24_123111_create_priority_notifications_table', 1),
+(33, '2025_09_24_141038_create_priority_product_budgets_table', 1),
+(34, '2025_09_30_094545_create_notifications_table', 1),
+(35, '2025_10_02_143107_create_product_returns_table', 1);
 
 -- --------------------------------------------------------
 
@@ -367,6 +380,7 @@ CREATE TABLE `monthly_offline_costs` (
   `description` varchar(255) DEFAULT NULL,
   `paid_date` date DEFAULT NULL,
   `status` enum('paid','unpaid') NOT NULL DEFAULT 'unpaid',
+  `approve_status` enum('pending','approved') NOT NULL DEFAULT 'pending',
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -391,6 +405,7 @@ CREATE TABLE `monthly_online_costs` (
   `description` varchar(255) DEFAULT NULL,
   `paid_date` date DEFAULT NULL,
   `status` enum('paid','unpaid') NOT NULL DEFAULT 'unpaid',
+  `approve_status` enum('pending','approved') NOT NULL DEFAULT 'pending',
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -410,6 +425,38 @@ CREATE TABLE `monthly_targets` (
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- Dumping data for table `monthly_targets`
+--
+
+INSERT INTO `monthly_targets` (`id`, `year`, `month`, `target_amount`, `created_at`, `updated_at`) VALUES
+(1, 2025, 10, 0.00, '2025-10-06 04:32:25', '2025-10-06 04:32:25');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `notifications`
+--
+
+CREATE TABLE `notifications` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `notifiable_type` varchar(255) NOT NULL,
+  `notifiable_id` bigint(20) UNSIGNED NOT NULL,
+  `type` enum('pay','collect','info') NOT NULL,
+  `level` enum('red','blue','green') NOT NULL,
+  `message` text NOT NULL,
+  `due_date` date DEFAULT NULL,
+  `days_left` int(11) DEFAULT NULL,
+  `action_route` varchar(255) DEFAULT NULL,
+  `action_params` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`action_params`)),
+  `status` enum('active','cleared') NOT NULL DEFAULT 'active',
+  `cleared_at` timestamp NULL DEFAULT NULL,
+  `generated_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_level_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- --------------------------------------------------------
 
 --
@@ -419,25 +466,6 @@ CREATE TABLE `monthly_targets` (
 CREATE TABLE `offline_cost_categories` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `category` varchar(255) NOT NULL,
-  `created_at` timestamp NULL DEFAULT NULL,
-  `updated_at` timestamp NULL DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `offline_payment_notifications`
---
-
-CREATE TABLE `offline_payment_notifications` (
-  `id` bigint(20) UNSIGNED NOT NULL,
-  `monthly_offline_cost_id` bigint(20) UNSIGNED NOT NULL,
-  `level` enum('green','yellow','red') NOT NULL,
-  `status` enum('active','cleared') NOT NULL DEFAULT 'active',
-  `days_left` int(11) DEFAULT NULL,
-  `generated_at` timestamp NULL DEFAULT NULL,
-  `updated_level_at` timestamp NULL DEFAULT NULL,
-  `cleared_at` timestamp NULL DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -493,6 +521,7 @@ CREATE TABLE `priority_products` (
   `quantity` int(11) NOT NULL DEFAULT 1,
   `amount` decimal(10,2) NOT NULL,
   `description` text DEFAULT NULL,
+  `approve_status` enum('pending','approved') NOT NULL DEFAULT 'pending',
   `is_purchased` tinyint(1) NOT NULL DEFAULT 0,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
@@ -513,6 +542,13 @@ CREATE TABLE `priority_product_budgets` (
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- Dumping data for table `priority_product_budgets`
+--
+
+INSERT INTO `priority_product_budgets` (`id`, `year`, `month`, `extra_budget`, `created_at`, `updated_at`) VALUES
+(1, '2025', 10, 0.00, '2025-10-06 04:32:26', '2025-10-06 04:32:26');
+
 -- --------------------------------------------------------
 
 --
@@ -522,8 +558,10 @@ CREATE TABLE `priority_product_budgets` (
 CREATE TABLE `products` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `product_category_id` bigint(20) UNSIGNED NOT NULL,
-  `product_name` varchar(255) NOT NULL,
   `quantity` int(11) NOT NULL DEFAULT 0,
+  `amount_type` enum('dollar','taka') NOT NULL DEFAULT 'dollar',
+  `amount` decimal(10,2) NOT NULL DEFAULT 0.00,
+  `status` enum('approved','pending') NOT NULL DEFAULT 'pending',
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -536,8 +574,9 @@ CREATE TABLE `products` (
 
 CREATE TABLE `product_categories` (
   `id` bigint(20) UNSIGNED NOT NULL,
-  `name` varchar(255) NOT NULL COMMENT 'Name of the product category',
-  `quantity` int(11) NOT NULL DEFAULT 0 COMMENT 'Total quantity of products in this category',
+  `name` varchar(255) NOT NULL,
+  `total_quantity` int(11) NOT NULL DEFAULT 0,
+  `quantity` int(11) NOT NULL DEFAULT 0,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -552,8 +591,28 @@ CREATE TABLE `product_losses` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `product_category_id` bigint(20) UNSIGNED NOT NULL,
   `quantity` int(11) NOT NULL DEFAULT 0,
+  `amount_type` enum('dollar','taka') NOT NULL DEFAULT 'dollar',
   `loss_amount` decimal(10,2) NOT NULL DEFAULT 0.00,
   `description` varchar(255) DEFAULT NULL,
+  `status` enum('approved','pending') NOT NULL DEFAULT 'pending',
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `product_returns`
+--
+
+CREATE TABLE `product_returns` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `product_category_id` bigint(20) UNSIGNED NOT NULL,
+  `quantity` int(11) NOT NULL DEFAULT 0,
+  `amount_type` enum('dollar','taka') NOT NULL DEFAULT 'dollar',
+  `amount` decimal(10,2) NOT NULL DEFAULT 0.00,
+  `description` varchar(255) DEFAULT NULL,
+  `status` enum('approved','pending') NOT NULL DEFAULT 'pending',
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -568,9 +627,9 @@ CREATE TABLE `product_sales` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `product_category_id` bigint(20) UNSIGNED NOT NULL,
   `quantity` int(11) NOT NULL DEFAULT 0,
+  `amount_type` enum('dollar','taka') NOT NULL DEFAULT 'dollar',
   `amount` decimal(10,2) NOT NULL DEFAULT 0.00,
   `description` varchar(255) DEFAULT NULL,
-  `due_date` date DEFAULT NULL,
   `paid_date` date DEFAULT NULL,
   `status` enum('paid','unpaid') NOT NULL DEFAULT 'unpaid',
   `created_at` timestamp NULL DEFAULT NULL,
@@ -610,7 +669,7 @@ CREATE TABLE `sessions` (
 --
 
 INSERT INTO `sessions` (`id`, `user_id`, `ip_address`, `user_agent`, `payload`, `last_activity`) VALUES
-('7EhOabvNN6LWpRwMN0iCLGvBW32lwY2TVvb7rMFa', 1, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36', 'YTo2OntzOjY6Il90b2tlbiI7czo0MDoiZ29XbGM5OTRWZTh5THFHQlFlTEtJVkRjYWVDbkl1VlBzQ2hWS3M3SCI7czo2OiJfZmxhc2giO2E6Mjp7czozOiJvbGQiO2E6MDp7fXM6MzoibmV3IjthOjA6e319czozOiJ1cmwiO2E6MDp7fXM6OToiX3ByZXZpb3VzIjthOjE6e3M6MzoidXJsIjtzOjMzOiJodHRwOi8vbG9jYWxob3N0OjgwMDAvYWRtaW4vdXNlcnMiO31zOjUwOiJsb2dpbl93ZWJfNTliYTM2YWRkYzJiMmY5NDAxNTgwZjAxNGM3ZjU4ZWE0ZTMwOTg5ZCI7aToxO3M6NjoicmVzdWx0IjtkOjEyMS43ODcyMTczO30=', 1758814497);
+('LnS9O1npDTYun5JlwmyuXwemOC0riPILZLCjUJNE', 1, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36', 'YTo2OntzOjY6Il90b2tlbiI7czo0MDoieWpTOW95Sk1tVXFJQ28zTXk5a2p3b0FTMWdDaG1URHQyc0FnVHlhTiI7czo2OiJfZmxhc2giO2E6Mjp7czozOiJvbGQiO2E6MDp7fXM6MzoibmV3IjthOjA6e319czozOiJ1cmwiO2E6MDp7fXM6OToiX3ByZXZpb3VzIjthOjE6e3M6MzoidXJsIjtzOjM1OiJodHRwOi8vbG9jYWxob3N0OjgwMDAvbm90aWZpY2F0aW9ucyI7fXM6NTA6ImxvZ2luX3dlYl81OWJhMzZhZGRjMmIyZjk0MDE1ODBmMDE0YzdmNThlYTRlMzA5ODlkIjtpOjE7czo2OiJyZXN1bHQiO2Q6MTIxLjcxMjU1Mzg1O30=', 1759746822);
 
 -- --------------------------------------------------------
 
@@ -626,6 +685,7 @@ CREATE TABLE `staff` (
   `join_date` date NOT NULL,
   `amount` decimal(10,2) NOT NULL,
   `description` text DEFAULT NULL,
+  `approve_status` enum('pending','approved') NOT NULL DEFAULT 'pending',
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -655,6 +715,7 @@ CREATE TABLE `staff_salaries` (
   `salary_date` date NOT NULL,
   `amount` decimal(12,2) NOT NULL,
   `status` enum('Unpaid','Paid') NOT NULL DEFAULT 'Unpaid',
+  `approve_status` enum('pending','approved') NOT NULL DEFAULT 'pending',
   `paid_date` date DEFAULT NULL,
   `payment_method` varchar(255) DEFAULT NULL,
   `note` text DEFAULT NULL,
@@ -688,6 +749,7 @@ CREATE TABLE `students` (
   `description` text DEFAULT NULL,
   `payment_status` enum('Paid','Unpaid') NOT NULL DEFAULT 'Unpaid',
   `active_status` enum('Running','Expired') NOT NULL DEFAULT 'Running',
+  `approve_status` enum('pending','approved') NOT NULL DEFAULT 'pending',
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -705,6 +767,7 @@ CREATE TABLE `student_payments` (
   `due_amount` decimal(10,2) NOT NULL DEFAULT 0.00,
   `pay_date` date NOT NULL,
   `next_date` date DEFAULT NULL,
+  `approve_status` enum('pending','approved') NOT NULL DEFAULT 'pending',
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -732,7 +795,7 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `name`, `email`, `email_verified_at`, `password`, `remember_token`, `created_at`, `updated_at`, `role`) VALUES
-(1, 'Stagprime', 'stagprime@email.com', NULL, '$2y$12$XgB9Q0TOqouTiycHWXqDWe2IugcCguFVtX6dSyAYc87EkQ7fHQWOm', NULL, '2025-09-25 09:34:11', '2025-09-25 09:34:11', 'admin');
+(1, 'Stagprime', 'stagprime@email.com', NULL, '$2y$12$jF05JPqk4kHPIRGIAJeC0e.hpBmXTP/7LgnBiznwOIX/40m2UQ0L6', NULL, '2025-10-05 08:26:27', '2025-10-05 08:26:27', 'admin');
 
 --
 -- Indexes for dumped tables
@@ -867,18 +930,18 @@ ALTER TABLE `monthly_targets`
   ADD UNIQUE KEY `monthly_targets_year_month_unique` (`year`,`month`);
 
 --
+-- Indexes for table `notifications`
+--
+ALTER TABLE `notifications`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `notifications_notifiable_type_notifiable_id_index` (`notifiable_type`,`notifiable_id`);
+
+--
 -- Indexes for table `offline_cost_categories`
 --
 ALTER TABLE `offline_cost_categories`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `offline_cost_categories_category_unique` (`category`);
-
---
--- Indexes for table `offline_payment_notifications`
---
-ALTER TABLE `offline_payment_notifications`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `offline_payment_notifications_monthly_offline_cost_id_foreign` (`monthly_offline_cost_id`);
 
 --
 -- Indexes for table `online_cost_categories`
@@ -932,6 +995,13 @@ ALTER TABLE `product_categories`
 ALTER TABLE `product_losses`
   ADD PRIMARY KEY (`id`),
   ADD KEY `product_losses_product_category_id_foreign` (`product_category_id`);
+
+--
+-- Indexes for table `product_returns`
+--
+ALTER TABLE `product_returns`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `product_returns_product_category_id_foreign` (`product_category_id`);
 
 --
 -- Indexes for table `product_sales`
@@ -1083,7 +1153,7 @@ ALTER TABLE `loans`
 -- AUTO_INCREMENT for table `migrations`
 --
 ALTER TABLE `migrations`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=35;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=36;
 
 --
 -- AUTO_INCREMENT for table `monthly_offline_costs`
@@ -1101,18 +1171,18 @@ ALTER TABLE `monthly_online_costs`
 -- AUTO_INCREMENT for table `monthly_targets`
 --
 ALTER TABLE `monthly_targets`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
+-- AUTO_INCREMENT for table `notifications`
+--
+ALTER TABLE `notifications`
   MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `offline_cost_categories`
 --
 ALTER TABLE `offline_cost_categories`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `offline_payment_notifications`
---
-ALTER TABLE `offline_payment_notifications`
   MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
@@ -1137,7 +1207,7 @@ ALTER TABLE `priority_products`
 -- AUTO_INCREMENT for table `priority_product_budgets`
 --
 ALTER TABLE `priority_product_budgets`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `products`
@@ -1155,6 +1225,12 @@ ALTER TABLE `product_categories`
 -- AUTO_INCREMENT for table `product_losses`
 --
 ALTER TABLE `product_losses`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `product_returns`
+--
+ALTER TABLE `product_returns`
   MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
@@ -1222,12 +1298,6 @@ ALTER TABLE `installments`
   ADD CONSTRAINT `installments_loan_id_foreign` FOREIGN KEY (`loan_id`) REFERENCES `loans` (`id`) ON DELETE CASCADE;
 
 --
--- Constraints for table `offline_payment_notifications`
---
-ALTER TABLE `offline_payment_notifications`
-  ADD CONSTRAINT `offline_payment_notifications_monthly_offline_cost_id_foreign` FOREIGN KEY (`monthly_offline_cost_id`) REFERENCES `monthly_offline_costs` (`id`) ON DELETE CASCADE;
-
---
 -- Constraints for table `priority_notifications`
 --
 ALTER TABLE `priority_notifications`
@@ -1244,6 +1314,12 @@ ALTER TABLE `products`
 --
 ALTER TABLE `product_losses`
   ADD CONSTRAINT `product_losses_product_category_id_foreign` FOREIGN KEY (`product_category_id`) REFERENCES `product_categories` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `product_returns`
+--
+ALTER TABLE `product_returns`
+  ADD CONSTRAINT `product_returns_product_category_id_foreign` FOREIGN KEY (`product_category_id`) REFERENCES `product_categories` (`id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `product_sales`

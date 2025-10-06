@@ -13,6 +13,7 @@ class Staff extends Model
         'join_date',
         'amount',
         'description',
+        'approve_status',
     ];
 
     public function category()

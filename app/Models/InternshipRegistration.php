@@ -26,5 +26,6 @@ class InternshipRegistration extends Model
         'description',
         'payment_status',
         'active_status',
+        'approve_status',
     ];
 }

@@ -11,6 +11,7 @@ class CompanyProject extends Model
         'start_date',
         'initial_amount',
         'description',
+        'approve_status',
     ];
 
     public function transactions()

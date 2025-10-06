@@ -45,7 +45,7 @@
         <div class="bg-white shadow rounded-xl p-6 text-center">
             <h2 class="text-gray-600">Total Revenue</h2>
             <p class="text-3xl font-bold text-emerald-600">
-                {{ number_format($totals['revenue'],2) }}
+                ৳{{ number_format($totals['revenue'],2) }}
             </p>
         </div>
 
@@ -53,7 +53,7 @@
         <div class="bg-white shadow rounded-xl p-6 text-center">
             <h2 class="text-gray-600">Total Loss Amount</h2>
             <p class="text-3xl font-bold text-rose-600">
-                {{ number_format($totals['loss'],2) }}
+                ৳{{ number_format($totals['loss'],2) }}
             </p>
         </div>
 

@@ -15,6 +15,7 @@ return new class extends Migration
             $table->decimal('due_amount', 10, 2)->default(0);
             $table->date('pay_date');
             $table->date('next_date')->nullable();
+            $table->enum('approve_status', ['pending', 'approved'])->default('pending');
             $table->timestamps();
 
             $table->foreign('student_id')->references('id')->on('students')->onDelete('cascade');

@@ -25,6 +25,7 @@ return new class extends Migration
             $table->string('description')->nullable();
             $table->date('paid_date')->nullable();
             $table->enum('status', ['paid', 'unpaid'])->default('unpaid');
+            $table->enum('approve_status', ['pending', 'approved'])->default('pending');
             $table->timestamps();
         });
     }

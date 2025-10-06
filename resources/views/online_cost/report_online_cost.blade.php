@@ -53,7 +53,7 @@
         <!-- Expense List Table -->
         <div class="bg-white rounded shadow p-4 md:p-6 mt-6 overflow-x-auto">
             <h2 class="text-lg font-semibold mb-4">Expense and Expire Date List</h2>
-            <table class="w-full border-collapse border border-gray-300">
+            <table class="min-w-full border-collapse border border-gray-300">
                 <thead class="bg-gray-100">
                     <tr>
                         <th class="border border-gray-300 px-4 py-2 text-left">Expense Category</th>
