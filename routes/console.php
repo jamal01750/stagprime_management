@@ -55,3 +55,9 @@ Schedule::command('target:generate')
     ->onFailure(function () {
         Log::error('Monthly target generation failed.');
     });
+
+
+    // This is working fine in panel cronjobs
+    // * * * * * cd /home/admin/web/management.stagprime.com/public_html && /usr/bin/php artisan schedule:run >> /dev/null 2>&1
+    // This is working fine in server cronjobs
+    // /usr/bin/php8.2 -f /home/admin/web/management.stagprime.com/public_html/artisan schedule:run >> /dev/null 2>&1

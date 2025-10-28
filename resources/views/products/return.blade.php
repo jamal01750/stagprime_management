@@ -55,10 +55,14 @@
 
     {{-- Pending Return Table --}}
     <div class="mt-8">
-        <h2 class="text-lg font-semibold mb-4">Pending Return Entries</h2>
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-lg font-semibold">Pending Return Entries</h2>
+            <a href="{{ route('product.return.download.pdf') }}" target="_blank" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 font-medium">Download PDF</a>
+        </div>
         <table class="min-w-full border border-gray-200">
             <thead class="bg-gray-100">
                 <tr>
+                    <th class="px-4 py-2 border">Sl.</th>
                     <th class="px-4 py-2 border">Category</th>
                     <th class="px-4 py-2 border">Quantity</th>
                     <th class="px-4 py-2 border">Amount</th>
@@ -67,8 +71,9 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach($returns as $return)
+                @foreach($returns as $key => $return)
                 <tr>
+                    <td class="px-4 py-2 border">{{$key+1}}</td>
                     <td class="px-4 py-2 border">{{ $return->category->name }}</td>
                     <td class="px-4 py-2 border text-center">{{ $return->quantity }}</td>
                     <td class="px-4 py-2 border text-right">{{ $return->amount_type == 'taka' ? '৳' : '$' }}{{ number_format($return->amount,2) }}</td>
@@ -96,8 +101,20 @@
                     </td>
                 </tr>
                 @endforeach
+                <tr>
+                    <td class="px-4 py-2 border font-bold"></td>
+                    <td class="px-4 py-2 border font-bold">Total</td>
+                    <td class="px-4 py-2 border text-center font-bold">{{ $totalQuantity }}</td>
+                    <td class="px-4 py-2 border text-center font-bold">
+                        ৳ {{ number_format($totalAmount, 2) }}
+                    </td>
+                    <td class="px-4 py-2 border"></td>
+                </tr>
             </tbody>
         </table>
+        <div class="mt-4">
+            {{ $returns->links() }}
+        </div>
     </div>
 
 </div>

@@ -136,36 +136,41 @@
                      @if($alerts['upcomingPayments']->isEmpty() && $alerts['loanRepayments']->isEmpty() && $alerts['clientPending']->isEmpty() && $alerts['studentPending']->isEmpty() && $alerts['priorityAlerts']->isEmpty())
                         <p class="text-sm text-center text-gray-500 py-4">No new alerts.</p>
                     @else
-                        @if($alerts['upcomingPayments']->isNotEmpty())
+                        {{-- FIXED: Loop through upcoming payments and use nullsafe operator --}}
+                        @foreach($alerts['upcomingPayments'] as $payment)
                         <div class="flex items-start p-3 bg-yellow-50 text-yellow-800 rounded-lg">
                              <div class="flex-shrink-0 w-8 text-center pt-0.5"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg></div>
-                            <p class="ml-2 text-sm"><strong>Upcoming Payment:</strong> {{ $alerts['upcomingPayments']->first()->monthlyOfflineCost->category->category }} on {{ \Carbon\Carbon::parse($alerts['upcomingPayments']->first()->monthlyOfflineCost->last_date)->format('d M') }}</p>
+                            <p class="ml-2 text-sm"><strong>Upcoming Payment:</strong> {{ $payment->category?->category ?? 'N/A' }} on {{ \Carbon\Carbon::parse($payment->last_date)->format('d M') }}</p>
                         </div>
-                        @endif
-                        @if($alerts['loanRepayments']->isNotEmpty())
+                        @endforeach
+                        
+                        @foreach($alerts['loanRepayments'] as $repayment)
                         <div class="flex items-start p-3 bg-blue-50 text-blue-800 rounded-lg">
                              <div class="flex-shrink-0 w-8 text-center pt-0.5"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v.01" /></svg></div>
-                            <p class="ml-2 text-sm"><strong>Loan Repayment:</strong> {{ $alerts['loanRepayments']->first()->loan->loan_name }} due on {{ \Carbon\Carbon::parse($alerts['loanRepayments']->first()->pay_date)->format('d M') }}</p>
+                            <p class="ml-2 text-sm"><strong>Loan Repayment:</strong> {{ $repayment->loan?->loan_name ?? 'N/A' }} due on {{ \Carbon\Carbon::parse($repayment->pay_date)->format('d M') }}</p>
                         </div>
-                        @endif
-                        @if($alerts['clientPending']->isNotEmpty())
+                        @endforeach
+
+                        @foreach($alerts['clientPending'] as $pending)
                         <div class="flex items-start p-3 bg-red-50 text-red-800 rounded-lg">
                             <div class="flex-shrink-0 w-8 text-center pt-0.5"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg></div>
-                            <p class="ml-2 text-sm"><strong>Client Payment Overdue:</strong> {{ $alerts['clientPending']->first()->project->project_name }} was due on {{ \Carbon\Carbon::parse($alerts['clientPending']->first()->pay_date)->format('d M') }}</p>
+                            <p class="ml-2 text-sm"><strong>Client Payment Overdue:</strong> {{ $pending->project?->project_name ?? 'N/A' }} was due on {{ \Carbon\Carbon::parse($pending->pay_date)->format('d M') }}</p>
                         </div>
-                        @endif
-                         @if($alerts['studentPending']->isNotEmpty())
+                        @endforeach
+                        
+                         @foreach($alerts['studentPending'] as $pending)
                         <div class="flex items-start p-3 bg-red-50 text-red-800 rounded-lg">
                             <div class="flex-shrink-0 w-8 text-center pt-0.5"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg></div>
-                            <p class="ml-2 text-sm"><strong>Student Payment Overdue:</strong> {{ $alerts['studentPending']->first()->student_name }} was due on {{ \Carbon\Carbon::parse($alerts['studentPending']->first()->payment_due_date)->format('d M') }}</p>
+                            <p class="ml-2 text-sm"><strong>Student Payment Overdue:</strong> {{ $pending->student_name ?? 'N/A' }} was due on {{ \Carbon\Carbon::parse($pending->payment_due_date)->format('d M') }}</p>
                         </div>
-                        @endif
-                        @if($alerts['priorityAlerts']->isNotEmpty())
+                        @endforeach
+
+                        @foreach($alerts['priorityAlerts'] as $alert)
                         <div class="flex items-start p-3 bg-green-50 text-green-800 rounded-lg">
                             <div class="flex-shrink-0 w-8 text-center pt-0.5"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg></div>
-                            <p class="ml-2 text-sm"><strong>Priority Purchase Ready:</strong> {{ $alerts['priorityAlerts']->first()->product->name }} is ready for purchase.</p>
+                            <p class="ml-2 text-sm"><strong>Priority Purchase Ready:</strong> {{ $alert->product?->name ?? 'N/A' }} is ready for purchase.</p>
                         </div>
-                        @endif
+                        @endforeach
                     @endif
                 </div>
             </section>

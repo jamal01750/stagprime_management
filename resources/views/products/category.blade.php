@@ -23,7 +23,10 @@
 
     <!-- Category List -->
     <div class="mt-6">
-        <h2 class="text-lg font-semibold mb-4">Product Categories</h2>
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-lg font-semibold">Product Categories</h2>
+            <a href="{{ route('product.category.download.pdf') }}" target="_blank" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 font-medium">Download PDF</a>
+        </div>
         <table class="min-w-full bg-white border border-gray-200 text-center">
             <thead>
                 <tr>

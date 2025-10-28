@@ -88,7 +88,23 @@ class CreditOrDebitController extends Controller
     // Create a new transaction
     public function showTransactionForm()
     {
-        return view('credit_debit.add_transaction');
+        $transactions = CreditOrDebit::where('approve_status','pending')
+                            ->orderBy('date', 'desc')
+                            // ->get()
+                            ->paginate(5);
+
+        $credits = $transactions->where('type', 'credit');
+        $debits = $transactions->where('type', 'debit');
+        $totalCredits = $credits->sum('amount');
+        $totalDebits = $debits->sum('amount');
+        $totalbalance = $totalCredits - $totalDebits;
+        
+        return view('credit_debit.add_transaction', [
+            'transactions' => $transactions,
+            'totalCredits' => number_format($totalCredits, 2),
+            'totalDebits' => number_format($totalDebits, 2),
+            'balance' => number_format($totalbalance, 2),
+        ]);
     }
     
     // Store a new transaction
@@ -103,73 +119,162 @@ class CreditOrDebitController extends Controller
             'type' => $request->input('type'),
             'amount' => $request->input('amount'),
             'description' => $request->input('description'),
+            'approve_status' => 'pending',
         ]);
         return redirect()->back()->with('success', 'Transaction added successfully!');
     }
-    
-    // Report generation form
-    public function report()
+
+    // edit a transaction
+
+    public function edit($id)
     {
-        return view('credit_debit.report_generation');
+        $transaction = CreditOrDebit::findOrFail($id);
+        return view('credit_debit.edit_transaction', compact('transaction'));
     }
-    
-    // Report show
-    public function showReports(Request $request)
+
+    public function update(Request $request, $id)
     {
-        // Fetch transactions within the specified date range
-        $transactions = CreditOrDebit::whereBetween('date', [
-            $request->start_date, $request->end_date
-        ])->orderBy('date', 'desc')->get();
-        
+        $transaction = CreditOrDebit::findOrFail($id);
+
+        $request->validate([
+            'date' => 'required|date',
+            'type' => 'required|in:credit,debit',
+            'amount' => 'required|numeric|min:0',
+            'description' => ['nullable', 'string', 'not_regex:/<[^>]*>|<script\b[^>]*>(.*?)<\/script>/i'],
+        ]);
+
+        $transaction->update([
+            'date' => $request->input('date'),
+            'type' => $request->input('type'),
+            'amount' => $request->input('amount'),
+            'description' => $request->input('description'),
+        ]);
+
+        return redirect()->route('credit.debit.report')->with('success', 'Transaction updated successfully!');
+    }
+
+    public function destroy($id)
+    {
+        $transaction = CreditOrDebit::findOrFail($id);
+        $transaction->delete();
+
+        return redirect()->route('credit.debit.report')->with('success', 'Transaction deleted successfully!');
+    }
+  
+
+    // Download only pending transactions as PDF
+    public function downloadPendingPDF()
+    {
+        $transactions = CreditOrDebit::where('approve_status', 'pending')
+            ->orderBy('date', 'asc')
+            ->get();
+
+        if ($transactions->isEmpty()) {
+            return redirect()->back()->with('success', 'No pending transactions found.');
+        }
+
+        // Calculate totals
         $credits = $transactions->where('type', 'credit');
         $debits = $transactions->where('type', 'debit');
         $totalCredits = $credits->sum('amount');
         $totalDebits = $debits->sum('amount');
-        $totalbalance = $totalCredits - $totalDebits;
-        
-        return view('credit_debit.report_generation', [
+        $balance = $totalCredits - $totalDebits;
+
+        $data = [
             'transactions' => $transactions,
-            'start_date' => $request->start_date,
-            'end_date' => $request->end_date,
             'totalCredits' => number_format($totalCredits, 2),
             'totalDebits' => number_format($totalDebits, 2),
-            'balance' => number_format($totalbalance, 2),
-        ]);
-        
+            'balance' => number_format($balance, 2),
+            'generated_at' => now('Asia/Dhaka')->format('d M Y, h:i A'),
+        ];
+
+        $pdf = Pdf::loadView('pdf.credit_debit_report', $data)
+                ->setPaper('a4', 'portrait');
+
+
+        return $pdf->stream('pending-transactions.pdf');
+        // return $pdf->download('pending-transactions.pdf');
     }
 
-    // Download PDF report
-    public function downloadPDF(Request $request)
+    // ✅ Initial + filtered report page
+    public function report(Request $request)
     {
+        $query = CreditOrDebit::query();
 
-        $ids = $request->input('transaction_ids', []);
-
-        if (empty($ids)) {
-            $transactions = CreditOrDebit::whereBetween('date', [
-            $request->start_date, $request->end_date
-            ])->orderBy('date', 'asc')->get();
-        }else {
-            $transactions = CreditOrDebit::whereIn('id', $ids)->orderBy('date', 'asc')->get();
+        // Filter by status
+        if ($request->filled('status')) {
+            $query->where('approve_status', $request->status);
         }
+
+        // Filter by date range
+        if ($request->filled('start_date') && $request->filled('end_date')) {
+            $query->whereBetween('date', [$request->start_date, $request->end_date]);
+        }
+
+        $transactions = $query->orderBy('date', 'desc')->paginate(10);
+
+        $totalCredits = $transactions->where('type', 'credit')->sum('amount');
+        $totalDebits = $transactions->where('type', 'debit')->sum('amount');
+        $balance = $totalCredits - $totalDebits;
+
+        return view('credit_debit.report_generation', [
+            'transactions' => $transactions,
+            'totalCredits' => number_format($totalCredits, 2),
+            'totalDebits' => number_format($totalDebits, 2),
+            'balance' => number_format($balance, 2),
+            'start_date' => $request->start_date,
+            'end_date' => $request->end_date,
+            'selected_status' => $request->status,
+        ]);
+    }
+
+    // ✅ AJAX status update
+    public function updateStatus(Request $request)
+    {
+        $transaction = CreditOrDebit::find($request->id);
+
+        if (!$transaction) {
+            return response()->json(['success' => false, 'message' => 'Transaction not found']);
+        }
+
+        $transaction->approve_status = $request->status;
+        $transaction->save();
+
+        return response()->json(['success' => true, 'message' => 'Status updated successfully']);
+    }
+
+    // ✅ Download selected or all transactions as PDF
+    public function downloadPdf(Request $request)
+    {
+        $ids = $request->transaction_ids ?? null;
+
+        $query = CreditOrDebit::query();
+        if ($ids) {
+            $query->whereIn('id', $ids);
+        }
+
+        $transactions = $query->orderBy('date', 'asc')->get();
 
         // Filter credits and debits safely
         $credits = $transactions->filter(fn($t) => $t->type === 'credit');
         $debits = $transactions->filter(fn($t) => $t->type === 'debit');
-        $totalNewCredits = $credits->sum('amount');
-        $totalNewDebits = $debits->sum('amount');
-        $newBalance = $totalNewCredits - $totalNewDebits;
+        $totalCredits = $credits->sum('amount');
+        $totalDebits = $debits->sum('amount');
+        $balance = $totalCredits - $totalDebits;
 
         $data = [
             'transactions' => $transactions,
-            'totalNewCredits' => number_format($totalNewCredits, 2),
-            'totalNewDebits' => number_format($totalNewDebits, 2),
-            'newBalance' => number_format($newBalance, 2),
+            'totalCredits' => number_format($totalCredits, 2),
+            'totalDebits' => number_format($totalDebits, 2),
+            'balance' => number_format($balance, 2),
+            'generated_at' => now('Asia/Dhaka')->format('d M Y, h:i A'),
         ];
 
-        // return $data
-        $pdf = Pdf::loadView('pdf.credit_debit_report', $data);
-        return $pdf->download('credit-debit-transaction-report.pdf');
+        $pdf = Pdf::loadView('pdf.credit_debit_report', $data)
+                ->setPaper('a4', 'portrait');
+        
+        return $pdf->stream('Transaction_Report.pdf');
     }
-
+    
     
 }

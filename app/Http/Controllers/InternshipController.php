@@ -8,47 +8,26 @@ use App\Models\Batch;
 use App\Models\Course;
 use Illuminate\Support\Facades\Storage;
 use Carbon\Carbon;
+use Barryvdh\DomPDF\Facade\Pdf;
+
 
 class InternshipController extends Controller
 {
 
-    // Create Batch 
-    public function createBatch(Request $request)
-    {
-        $request->validate([
-            'batch_name' => 'required|string|max:255',
-        ]);
-
-        Batch::create([
-            'batch_name' => $request->batch_name,
-        ]);
-
-        return redirect()->back()->with('success', 'Batch created successfully.');
-    }
-
-    // Create Course
-    public function createCourse(Request $request)
-    {
-        $request->validate([
-            'course_name' => 'required|string|max:255',
-        ]);
-
-        Course::create([
-            'course_name' => $request->course_name,
-        ]);
-
-        return redirect()->back()->with('success', 'Course created successfully.');
-    }
 
     // New Internship Registration
     public function newRegistration()
     {
         $batches = Batch::all();
         $courses = Course::all();
+        $students = InternshipRegistration::where('approve_status','pending')
+            ->orderBy('admission_date', 'desc')
+            ->paginate(2); 
         
         return view('internship.new_registration', [
             'batches' => $batches,
             'courses' => $courses,
+            'students' => $students,
         ]);
     }
 
@@ -73,12 +52,12 @@ class InternshipController extends Controller
         // ---- Generate Student ID ----
         $lastStudent = InternshipRegistration::orderBy('id', 'desc')->first();
         if ($lastStudent) {
-            $lastNumber = (int) str_replace('SP-', '', $lastStudent->student_id);
+            $lastNumber = (int) str_replace('SPI-', '', $lastStudent->intern_id);
             $nextNumber = $lastNumber + 1;
         } else {
             $nextNumber = 1;
         }
-        $studentId = 'SP-' . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
+        $studentId = 'SPI-' . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
 
         // ---- Handle Image Upload ----
         $imagePath = null;
@@ -108,38 +87,7 @@ class InternshipController extends Controller
         return redirect()->back()->with('success', "Intern Registered Successfully. ID: {$studentId}");
     }
 
-    // Running Intern Lists
-    public function runningList()
-    {
-        $students = InternshipRegistration::where('active_status', 'Running')
-            ->orderBy('admission_date', 'asc')
-            ->get();
-
-        foreach ($students as $student) {
-            $installment = $student->pay_amount / 3;
-
-            // Upcoming amount logic
-            if ($student->pay_amount > $student->total_paid) {
-                $student->upcoming_amount = $installment;
-            } else {
-                $student->upcoming_amount = 0;
-            }
-
-            // Upcoming date logic
-            if ($student->total_paid == 0) {
-                $student->upcoming_date = \Carbon\Carbon::parse($student->admission_date)->addMonth();
-            } elseif ($student->total_paid == $installment) {
-                $student->upcoming_date = \Carbon\Carbon::parse($student->admission_date)->addMonths(2);
-            } elseif ($student->total_paid == $installment * 2) {
-                $student->upcoming_date = \Carbon\Carbon::parse($student->admission_date)->addMonths(3);
-            } elseif ($student->total_paid == $student->pay_amount) {
-                $student->upcoming_date = null;
-            }
-        }
-
-        return view('internship.running_list', compact('students'));
-    }
-    
+     
     // Intern Payment Update
     public function paymentUpdate($id)
     {
@@ -168,30 +116,18 @@ class InternshipController extends Controller
 
             $student->save();
 
-            return redirect()->route('internship.list.running')
+            return redirect()->route('internship.list')
                 ->with('success', "Payment updated successfully for {$student->intern_id}.");
         }
 
-        return redirect()->route('internship.list.running')
+        return redirect()->route('internship.list')
             ->with('success', "{$student->intern_id} is already fully paid.");
     }
 
-
-
-
-    // Intern Active Status Update
-    public function updateActiveStatus($id)
+    // Intern Details
+    public function studentDetails($id)
     {
         $student = InternshipRegistration::findOrFail($id);
-        $student->active_status = 'Expired';
-        $student->save();
-        return redirect()->route('internship.list.running')->with('success', 'Student status updated to Expired.');  
-    }
-
-    // Intern Details
-    public function studentDetails(Request $request, $student_id)
-    {
-        $student = InternshipRegistration::where('intern_id', $student_id)->first();
         $batches = Batch::all();
         $courses = Course::all();   
         if (!$student) {
@@ -247,7 +183,7 @@ class InternshipController extends Controller
 
             // Keep same studentId, rename file with same ID
             $extension = $request->file('image')->getClientOriginalExtension();
-            $fileName = strtolower($student->student_id) . '.' . $extension;
+            $fileName = strtolower($student->intern_id) . '.' . $extension;
 
             $imagePath = $request->file('image')->storeAs('internships', $fileName, 'public');
 
@@ -255,20 +191,155 @@ class InternshipController extends Controller
         }
 
         // ---- Update only provided fields ----
-        $student->fill($request->except(['image']));
+        $student->fill($request->except(['image','intern_id']));
 
         $student->save();
 
         return redirect()->back()->with('success', "Intern {$student->intern_id} updated successfully.");
     }
 
-    // Expire Intern Lists
-    public function expireList(){
-        $students = InternshipRegistration::where('active_status','Expired')->orderBy('admission_date','desc')->get();
+    // Intern Delete
+    public function destroyStudent($id)
+    {
+        $student = InternshipRegistration::findOrFail($id);    
+        // Delete image if exists
+        if ($student->image && Storage::disk('public')->exists($student->image)) {
+            Storage::disk('public')->delete($student->image);
+        }
+        $student->delete();    
+        return redirect()->back()->with('success', "Intern {$student->intern_id} deleted successfully.");
+    }
+
+    
+    public function downloadPdf($id)
+    {
+        $student = InternshipRegistration::with(['batch', 'course'])->findOrFail($id);
         
-        return view('internship.expire_list', [
-            'students' => $students,
-        ]);
+        $pdf = Pdf::loadView('pdf.intern_individual', compact('student'))->setPaper('a4', 'portrait');
+
+        $fileName = $student->internee_name . '_details.pdf';
+        return $pdf->stream($fileName);
+        // return $pdf->download($fileName);
+    }
+
+    // Students List with Filters
+    public function list(Request $request)
+    {
+        $query = InternshipRegistration::query();
+
+        // 🔹 Filtering
+        if ($request->filled('payment_status')) {
+            $query->where('payment_status', $request->payment_status);
+        }
+
+        if ($request->filled('active_status')) {
+            $query->where('active_status', $request->active_status);
+        }
+
+        if ($request->filled('approve_status')) {
+            $query->where('approve_status', $request->approve_status);
+        }
+
+        if ($request->filled('start_date') && $request->filled('end_date')) {
+            $query->whereBetween('admission_date', [$request->start_date, $request->end_date]);
+        }
+
+        if ($request->filled('intern_id')) {
+            $query->where('intern_id', 'like', '%' . $request->intern_id . '%');
+        }
+
+        $students = $query->orderBy('created_at','desc')->paginate(2);
+
+        foreach ($students as $student) {
+            $installment = $student->pay_amount / 3;
+
+            // Upcoming amount logic
+            if ($student->pay_amount > $student->total_paid) {
+                $student->upcoming_amount = $installment;
+            } else {
+                $student->upcoming_amount = 0;
+            }
+
+            // Upcoming date logic
+            if ($student->total_paid == 0) {
+                $student->upcoming_date = \Carbon\Carbon::parse($student->admission_date)->addMonth()->toDateString();
+            } elseif ($student->total_paid == $installment) {
+                $student->upcoming_date = \Carbon\Carbon::parse($student->admission_date)->addMonths(2)->toDateString();
+            } elseif ($student->total_paid == $installment * 2) {
+                $student->upcoming_date = \Carbon\Carbon::parse($student->admission_date)->addMonths(3)->toDateString();
+            } elseif ($student->total_paid == $student->pay_amount) {
+                $student->upcoming_date = null;
+            }
+        }
+
+        return view('internship.running_list', compact('students'));
+
+    }
+
+   
+    // Student Active Status Update
+    public function updateActiveStatus(Request $request, $id)
+    {
+        $request->validate(['active_status' => 'required']);
+        $student = InternshipRegistration::findOrFail($id);
+        $student->update(['active_status' => $request->active_status]);
+        return redirect()->back()->with('success', 'Active status updated successfully.');
+    }
+
+    public function updateApprovalStatus(Request $request, $id)
+    {
+        $request->validate(['approve_status' => 'required']);
+        $student = InternshipRegistration::findOrFail($id);
+        $student->update(['approve_status' => $request->approve_status]);
+        return redirect()->back()->with('success', 'Approval status updated successfully.');
+    }
+
+    // Download Students List PDF with Filters
+
+    public function downloadListPdf(Request $request)
+    {
+        $query = InternshipRegistration::with(['batch', 'course']);
+
+        // 🔹 Apply Filters (same as your list())
+        if ($request->filled('payment_status')) {
+            $query->where('payment_status', $request->payment_status);
+        }
+        if ($request->filled('active_status')) {
+            $query->where('active_status', $request->active_status);
+        }
+        if ($request->filled('approve_status')) {
+            $query->where('approve_status', $request->approve_status);
+        }
+        if ($request->filled('start_date') && $request->filled('end_date')) {
+            $query->whereBetween('admission_date', [$request->start_date, $request->end_date]);
+        }
+
+        $students = $query->get();
+
+        // 🔹 Calculate per-student and total payments
+        $pay_amount = 0;
+        $total_paid = 0;
+        $total_due = 0;
+
+        foreach ($students as $student) {
+            $student->due_amount = $student->pay_amount - $student->total_paid;
+            
+            $pay_amount += $student->pay_amount;
+            $total_paid += $student->total_paid;
+            $total_due += $student->due_amount;
+        }
+
+        $totals = [
+            'total_contract' => $pay_amount,
+            'total_paid' => $total_paid,
+            'total_due' => $total_due,
+        ];
+
+        // 🔹 Generate PDF (landscape)
+        $pdf = Pdf::loadView('pdf.intern_list', compact('students', 'totals'))
+                    ->setPaper('a4', 'landscape');
+
+        return $pdf->stream('intern_list.pdf');
     }
 
 

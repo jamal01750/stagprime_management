@@ -54,7 +54,7 @@
             <div>
                 <h3 class="text-lg font-semibold mb-2">Payment Info</h3>
                 <p><span class="font-semibold">Total Fee:</span> {{ number_format($student->total_fee, 2) }}</p>
-                <!-- <p><span class="font-semibold">Paid:</span> {{ number_format($student->paid_amount, 2) }}</p> -->
+                <p><span class="font-semibold">Paid:</span> {{ number_format($student->calculated_paid, 2) }}</p>
                 <p><span class="font-semibold">Due:</span> 
                     <span class="{{ $student->due_amount > 0 ? 'text-red-600 font-bold' : 'text-green-600 font-bold' }}">
                         {{ number_format($student->due_amount, 2) }}
@@ -71,13 +71,19 @@
             </div>
 
         </div>
-
+        
         {{-- Actions --}}
         <div class="p-6 border-t flex justify-end space-x-3">
+            <a href="{{ route('student.download.pdf', $student->id) }}" target="_blank" 
+                class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600">
+                Download PDF
+            </a>
+            @if(auth()->user()->role === 'admin')
             <a href="{{ route('student.edit', $student->id) }}" 
                class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
                Edit/Update
             </a>
+            @endif
         </div>
     </div>
 </div>

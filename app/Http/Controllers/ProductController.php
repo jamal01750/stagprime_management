@@ -9,6 +9,7 @@ use App\Models\ProductReturn;
 use App\Models\ProductSale;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class ProductController extends Controller
 {
@@ -110,13 +111,24 @@ class ProductController extends Controller
         return back()->with('success', 'Category deleted successfully.');
     }
 
+    public function downloadCategoryPdf()
+    {
+        $categories = ProductCategory::all();
+        $pdf = PDF::loadView('pdf.product_categories', compact('categories'));
+        return $pdf->stream('product_categories.pdf');
+    }
+
 // Product Management
     public function create()
     {
         $categories = ProductCategory::all();
         
-        $products = Product::where('status','pending')->with('category')->get();
-        return view('products.add', compact('categories','products'));
+        $products = Product::where('status','pending')->with('category')->paginate(5);
+        $totalAmount = $products->sum(function ($product) {
+            return $product->amount_type === 'dollar' ? $product->amount * session('result', 1) : $product->amount;
+        });
+        $totalQuantity = $products->sum('quantity');
+        return view('products.add', compact('categories','products','totalAmount', 'totalQuantity'));
     }
 
     public function store(Request $request)
@@ -183,13 +195,29 @@ class ProductController extends Controller
         return back()->with('success', 'Product deleted successfully.');
     }
 
+    public function downloadProductPdf()
+    {
+        $products = Product::where('status', 'pending')->with('category')->get();
+        $totalAmount = $products->sum(function ($product) {
+            return $product->amount_type === 'dollar' ? $product->amount * session('result', 1) : $product->amount;
+        });
+        $totalQuantity = $products->sum('quantity');
+        $pdf = PDF::loadView('pdf.pending_products', compact('products', 'totalAmount', 'totalQuantity'));
+        return $pdf->stream('pending_products.pdf');
+    }
+
 // Product Sale Management
     public function sell()
     {
         $categories = ProductCategory::all();
         // Show only pending sales
-        $sales = ProductSale::where('status', 'unpaid')->with('category')->get();
-        return view('products.sell', compact('categories','sales'));
+        $sales = ProductSale::where('status', 'unpaid')->with('category')->paginate(20);
+        $totalAmount = $sales->sum(function ($product) {
+            return $product->amount_type === 'dollar' ? $product->amount * session('result', 1) : $product->amount;
+        });
+        $totalQuantity = $sales->sum('quantity');
+        
+        return view('products.sell', compact('categories','sales','totalAmount', 'totalQuantity'));
     }
 
     public function storeSoldProduct(Request $request)
@@ -268,12 +296,28 @@ class ProductController extends Controller
         return back()->with('success', 'Sale deleted successfully.');
     }
 
+    public function downloadProductSalesPdf()
+    {
+        $sales = ProductSale::where('status', 'unpaid')->with('category')->get();
+        $totalAmount = $sales->sum(function ($sale) {
+            return $sale->amount_type === 'dollar' ? $sale->amount * session('result', 1) : $sale->amount;
+        });
+        $totalQuantity = $sales->sum('quantity');
+        
+        $pdf = PDF::loadView('pdf.pending_sales', compact('sales', 'totalAmount', 'totalQuantity'));
+        return $pdf->stream('pending_sales.pdf');
+    }
+
 // Product Loss Management
     public function loss()
     {
         $categories = ProductCategory::all();
-        $losses = ProductLoss::where('status', 'pending')->with('category')->get();
-        return view('products.loss', compact('categories','losses'));
+        $losses = ProductLoss::where('status', 'pending')->with('category')->paginate(20);
+        $totalAmount = $losses->sum(function ($loss) {
+            return $loss->amount_type === 'dollar' ? $loss->loss_amount * session('result', 1) : $loss->loss_amount;
+        });
+        $totalQuantity = $losses->sum('quantity');
+        return view('products.loss', compact('categories','losses', 'totalAmount', 'totalQuantity'));
     }
 
     public function storeLossProduct(Request $request)
@@ -345,12 +389,28 @@ class ProductController extends Controller
         return back()->with('success', 'Loss deleted successfully.');
     }
 
+    public function downloadLossPdf()
+    {
+        $losses = ProductLoss::where('status', 'pending')->with('category')->get();
+        $totalAmount = $losses->sum(function ($loss) {
+            return $loss->amount_type === 'dollar' ? $loss->loss_amount * session('result', 1) : $loss->loss_amount;
+        });
+        $totalQuantity = $losses->sum('quantity');
+        
+        $pdf = PDF::loadView('pdf.pending_losses', compact('losses', 'totalAmount', 'totalQuantity'));
+        return $pdf->stream('pending_losses.pdf');
+    }
+
 // Product Return Management
     public function return()
     {
         $categories = ProductCategory::all();
-        $returns = ProductReturn::where('status', 'pending')->with('category')->get();
-        return view('products.return', compact('categories','returns'));
+        $returns = ProductReturn::where('status', 'pending')->with('category')->paginate(20);
+        $totalAmount = $returns->sum(function ($return) {
+            return $return->amount_type === 'dollar' ? $return->amount * session('result', 1) : $return->amount;
+        });
+        $totalQuantity = $returns->sum('quantity');
+        return view('products.return', compact('categories','returns', 'totalAmount', 'totalQuantity'));
     }
 
     public function storeReturnProduct(Request $request)
@@ -417,6 +477,17 @@ class ProductController extends Controller
         $return->delete();
 
         return back()->with('success', 'Return deleted successfully.');
+    }
+
+    public function downloadReturnPdf()
+    {
+        $returns = ProductReturn::where('status', 'pending')->with('category')->get();
+        $totalAmount = $returns->sum(function ($return) {
+            return $return->amount_type === 'dollar' ? $return->amount * session('result', 1) : $return->amount;
+        });
+        $totalQuantity = $returns->sum('quantity');
+        $pdf = PDF::loadView('pdf.pending_returns', compact('returns', 'totalAmount', 'totalQuantity'));
+        return $pdf->stream('pending_returns.pdf');
     }
 
 
@@ -638,6 +709,380 @@ class ProductController extends Controller
             'categories','totals','filterType','date','month','year','startDate','endDate',
             'categoryId','details','categoryName'
         ));
+    }
+
+    public function stockReport(Request $request)
+    {
+        $start_date = $request->input('start_date');
+        $end_date = $request->input('end_date');
+        $selected_status = $request->input('status');
+        $selected_category = $request->input('category_id');
+
+        $categories = ProductCategory::orderBy('name')->get();
+
+        $query = Product::with('category');
+
+        if ($start_date) {
+            $query->whereDate('created_at', '>=', $start_date);
+        }
+
+        if ($end_date) {
+            $query->whereDate('created_at', '<=', $end_date);
+        }
+
+        if ($selected_status) {
+            $query->where('status', $selected_status);
+        }
+
+        if ($selected_category) {
+            $query->where('product_category_id', $selected_category);
+        }
+
+        $products = $query->latest()->paginate(10);
+
+        $totalQuantity = $products->sum('quantity');
+        $totalAmount = $products->sum(function ($product) {
+            return $product->amount_type === 'dollar' ? $product->amount * session('result', 1) : $product->amount;
+        });
+
+        return view('products.stock_report', compact(
+            'products',
+            'categories',
+            'start_date',
+            'end_date',
+            'selected_status',
+            'selected_category',
+            'totalQuantity',
+            'totalAmount'
+        ));
+    }
+
+    public function updateStockStatus(Request $request)
+    {
+        $product = Product::find($request->id);
+        if ($product) {
+            $product->status = $request->status;
+            $product->save();
+            return response()->json(['message' => 'Status updated successfully!']);
+        }
+        return response()->json(['message' => 'Product not found!'], 404);
+    }
+
+    public function downloadProductFilterPdf(Request $request)
+    {
+        $start_date = $request->input('start_date');
+        $end_date = $request->input('end_date');
+        $selected_status = $request->input('status');
+        $selected_category = $request->input('category_id');
+
+        // $categories = ProductCategory::orderBy('name')->get();
+
+        $query = Product::with('category');
+
+        if ($start_date) {
+            $query->whereDate('created_at', '>=', $start_date);
+        }
+
+        if ($end_date) {
+            $query->whereDate('created_at', '<=', $end_date);
+        }
+
+        if ($selected_status) {
+            $query->where('status', $selected_status);
+        }
+
+        if ($selected_category) {
+            $query->where('product_category_id', $selected_category);
+        }
+
+        $products = $query->orderBy('created_at')->get();
+
+        $totalQuantity = $products->sum('quantity');
+        $totalAmount = $products->sum(function ($product) {
+            return $product->amount_type === 'dollar' ? $product->amount * session('result', 1) : $product->amount;
+        });
+
+        $pdf = PDF::loadView('pdf.pending_products', compact('products', 'totalAmount', 'totalQuantity'));
+        return $pdf->stream('pending_products.pdf');
+    }
+
+    public function sellReport(Request $request)
+    {
+        $start_date = $request->input('start_date');
+        $end_date = $request->input('end_date');
+        $selected_status = $request->input('status');
+        $selected_category = $request->input('category_id');
+
+        $categories = ProductCategory::orderBy('name')->get();
+
+        $query = ProductSale::with('category');
+
+        if ($start_date) {
+            $query->whereDate('created_at', '>=', $start_date);
+        }
+
+        if ($end_date) {
+            $query->whereDate('created_at', '<=', $end_date);
+        }
+
+        if ($selected_status) {
+            $query->where('status', $selected_status);
+        }
+
+        if ($selected_category) {
+            $query->where('product_category_id', $selected_category);
+        }
+
+        $products = $query->latest()->paginate(10);
+
+        $totalQuantity = $products->sum('quantity');
+        $totalAmount = $products->sum(function ($product) {
+            return $product->amount_type === 'dollar' ? $product->amount * session('result', 1) : $product->amount;
+        });
+
+        return view('products.sell_report', compact(
+            'products',
+            'categories',
+            'start_date',
+            'end_date',
+            'selected_status',
+            'selected_category',
+            'totalQuantity',
+            'totalAmount'
+        ));
+    }
+
+    public function updateSellStatus(Request $request)
+    {
+        $product = ProductSale::find($request->id);
+        if ($product) {
+            $product->status = $request->status;
+            $product->save();
+            return response()->json(['message' => 'Status updated successfully!']);
+        }
+        return response()->json(['message' => 'Product not found!'], 404);
+    }
+
+    public function downloadSellFilterPdf(Request $request)
+    {
+        $start_date = $request->input('start_date');
+        $end_date = $request->input('end_date');
+        $selected_status = $request->input('status');
+        $selected_category = $request->input('category_id');
+
+        $query = ProductSale::with('category');
+
+        if ($start_date) {
+            $query->whereDate('created_at', '>=', $start_date);
+        }
+
+        if ($end_date) {
+            $query->whereDate('created_at', '<=', $end_date);
+        }
+
+        if ($selected_status) {
+            $query->where('status', $selected_status);
+        }
+
+        if ($selected_category) {
+            $query->where('product_category_id', $selected_category);
+        }
+
+        $sales = $query->orderBy('created_at')->get();
+
+        $totalQuantity = $sales->sum('quantity');
+        $totalAmount = $sales->sum(function ($product) {
+            return $product->amount_type === 'dollar' ? $product->amount * session('result', 1) : $product->amount;
+        });
+
+        $pdf = PDF::loadView('pdf.pending_sales', compact('sales', 'totalAmount', 'totalQuantity'));
+        return $pdf->stream('pending_sales.pdf');
+    }
+
+    public function lossReport(Request $request)
+    {
+        $start_date = $request->input('start_date');
+        $end_date = $request->input('end_date');
+        $selected_status = $request->input('status');
+        $selected_category = $request->input('category_id');
+
+        $categories = ProductCategory::orderBy('name')->get();
+
+        $query = ProductLoss::with('category');
+
+        if ($start_date) {
+            $query->whereDate('created_at', '>=', $start_date);
+        }
+
+        if ($end_date) {
+            $query->whereDate('created_at', '<=', $end_date);
+        }
+
+        if ($selected_status) {
+            $query->where('status', $selected_status);
+        }
+
+        if ($selected_category) {
+            $query->where('product_category_id', $selected_category);
+        }
+
+        $products = $query->latest()->paginate(10);
+
+        $totalQuantity = $products->sum('quantity');
+        $totalAmount = $products->sum(function ($product) {
+            return $product->amount_type === 'dollar' ? $product->loss_amount * session('result', 1) : $product->loss_amount;
+        });
+
+        return view('products.loss_report', compact(
+            'products',
+            'categories',
+            'start_date',
+            'end_date',
+            'selected_status',
+            'selected_category',
+            'totalQuantity',
+            'totalAmount'
+        ));
+    }
+
+    public function updateLossStatus(Request $request)
+    {
+        $product = ProductLoss::find($request->id);
+        if ($product) {
+            $product->status = $request->status;
+            $product->save();
+            return response()->json(['message' => 'Status updated successfully!']);
+        }
+        return response()->json(['message' => 'Product not found!'], 404);
+    }
+
+    public function downloadLossFilterPdf(Request $request)
+    {
+        $start_date = $request->input('start_date');
+        $end_date = $request->input('end_date');
+        $selected_status = $request->input('status');
+        $selected_category = $request->input('category_id');
+
+        $query = ProductLoss::with('category');
+
+        if ($start_date) {
+            $query->whereDate('created_at', '>=', $start_date);
+        }
+
+        if ($end_date) {
+            $query->whereDate('created_at', '<=', $end_date);
+        }
+
+        if ($selected_status) {
+            $query->where('status', $selected_status);
+        }
+
+        if ($selected_category) {
+            $query->where('product_category_id', $selected_category);
+        }
+
+        $losses = $query->orderBy('created_at')->get();
+
+        $totalQuantity = $losses->sum('quantity');
+        $totalAmount = $losses->sum(function ($product) {
+            return $product->amount_type === 'dollar' ? $product->loss_amount * session('result', 1) : $product->loss_amount;
+        });
+
+        $pdf = PDF::loadView('pdf.pending_losses', compact('losses', 'totalAmount', 'totalQuantity'));
+        return $pdf->stream('pending_losses.pdf');
+    }
+
+    public function returnReport(Request $request)
+    {
+        $start_date = $request->input('start_date');
+        $end_date = $request->input('end_date');
+        $selected_status = $request->input('status');
+        $selected_category = $request->input('category_id');
+
+        $categories = ProductCategory::orderBy('name')->get();
+
+        $query = ProductReturn::with('category');
+
+        if ($start_date) {
+            $query->whereDate('created_at', '>=', $start_date);
+        }
+
+        if ($end_date) {
+            $query->whereDate('created_at', '<=', $end_date);
+        }
+
+        if ($selected_status) {
+            $query->where('status', $selected_status);
+        }
+
+        if ($selected_category) {
+            $query->where('product_category_id', $selected_category);
+        }
+
+        $products = $query->latest()->paginate(10);
+
+        $totalQuantity = $products->sum('quantity');
+        $totalAmount = $products->sum(function ($product) {
+            return $product->amount_type === 'dollar' ? $product->amount * session('result', 1) : $product->amount;
+        });
+
+        return view('products.return_report', compact(
+            'products',
+            'categories',
+            'start_date',
+            'end_date',
+            'selected_status',
+            'selected_category',
+            'totalQuantity',
+            'totalAmount'
+        ));
+    }
+
+    public function updateReturnStatus(Request $request)
+    {
+        $product = ProductReturn::find($request->id);
+        if ($product) {
+            $product->status = $request->status;
+            $product->save();
+            return response()->json(['message' => 'Status updated successfully!']);
+        }
+        return response()->json(['message' => 'Product not found!'], 404);
+    }
+
+    public function downloadReturnFilterPdf(Request $request)
+    {
+        $start_date = $request->input('start_date');
+        $end_date = $request->input('end_date');
+        $selected_status = $request->input('status');
+        $selected_category = $request->input('category_id');
+
+        $query = ProductReturn::with('category');
+
+        if ($start_date) {
+            $query->whereDate('created_at', '>=', $start_date);
+        }
+
+        if ($end_date) {
+            $query->whereDate('created_at', '<=', $end_date);
+        }
+
+        if ($selected_status) {
+            $query->where('status', $selected_status);
+        }
+
+        if ($selected_category) {
+            $query->where('product_category_id', $selected_category);
+        }
+
+        $returns = $query->orderBy('created_at')->get();
+
+        $totalQuantity = $returns->sum('quantity');
+        $totalAmount = $returns->sum(function ($product) {
+            return $product->amount_type === 'dollar' ? $product->amount * session('result', 1) : $product->amount;
+        });
+
+        $pdf = PDF::loadView('pdf.pending_returns', compact('returns', 'totalAmount', 'totalQuantity'));
+        return $pdf->stream('pending_returns.pdf');
     }
 
 

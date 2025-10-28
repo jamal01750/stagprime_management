@@ -90,36 +90,36 @@
 
                     <div>
                         <label class="block text-sm font-medium">Admission Date</label>
-                        <input type="date" name="admission_date" value="{{ old('admission_date', $student->admission_date) }}" class="mt-1 block w-full border-2 border-blue-600 rounded" readonly>
+                        <input type="date" name="admission_date" value="{{ old('admission_date', $student->admission_date) }}" class="mt-1 block w-full border-2 border-blue-600 rounded" required>
                     </div>
 
                     <div>
                         <label class="block text-sm font-medium">Total Fee</label>
-                        <input type="number" name="total_fee" value="{{ old('total_fee', $student->total_fee) }}" step="0.01" class="mt-1 block w-full border-2 border-blue-600 rounded" readonly>
+                        <input type="number" name="total_fee" value="{{ old('total_fee', $student->total_fee) }}" step="0.01" class="mt-1 block w-full border-2 border-blue-600 rounded" required>
                     </div>
                 
                     <div>
                         <label class="block text-sm font-medium">Due Amount</label>
-                        <input type="number" name="due_amount" value="{{ old('due_amount', $student->due_amount) }}" step="0.01" class="mt-1 block w-full border-2 border-blue-600 rounded" readonly>
+                        <input type="number" name="due_amount" value="{{ old('due_amount', $student->due_amount) }}" step="0.01" class="mt-1 block w-full border-2 border-blue-600 rounded" required>
                     </div>
 
                     <div>
                         <label class="block text-sm font-medium">Payment Due Date</label>
-                        <input type="date" name="payment_due_date" value="{{ old('payment_due_date', $student->payment_due_date) }}" class="mt-1 block w-full border-2 border-blue-600 rounded" readonly>
+                        <input type="date" name="payment_due_date" value="{{ old('payment_due_date', $student->payment_due_date) }}" class="mt-1 block w-full border-2 border-blue-600 rounded">
                     </div>
 
                     <div>
                         <label class="block text-sm font-medium">Comment</label>
                         <textarea name="description" rows="3" class="mt-1 block w-full border-2 border-blue-600 rounded">{{ old('description', $student->description) }}</textarea>
                     </div>
-
+                    @if(auth()->user()->role === 'admin')
                     <div>
                         <label class="block text-sm font-medium">Payment Status</label>
-                        <input type="text" name="payment_status" value="{{ old('payment_status', $student->payment_status) }}" class="mt-1 block w-full border-2 border-blue-600 rounded" readonly>
-                        <!-- <select name="payment_status" class="mt-1 block w-full border-2 border-blue-600 rounded" readonly>
+                        <!-- <input type="text" name="payment_status" value="{{ old('payment_status', $student->payment_status) }}" class="mt-1 block w-full border-2 border-blue-600 rounded" required> -->
+                        <select name="payment_status" class="mt-1 block w-full border-2 border-blue-600 rounded" required>
                             <option value="Paid" {{ $student->payment_status == 'Paid' ? 'selected' : '' }}>Paid</option>
                             <option value="Unpaid" {{ $student->payment_status == 'Unpaid' ? 'selected' : '' }}>Unpaid</option>
-                        </select> -->
+                        </select>
                     </div>
 
                     <div>
@@ -130,6 +130,14 @@
                         </select>
                     </div>
 
+                    <div>
+                        <label class="block text-sm font-medium">Approval Status</label>
+                        <select name="approve_status" class="mt-1 block w-full border-2 border-blue-600 rounded">
+                            <option value="pending" {{ $student->approve_status == 'pending' ? 'selected' : '' }}>Pending</option>
+                            <option value="approved" {{ $student->approve_status == 'approved' ? 'selected' : '' }}>Approved</option>
+                        </select>
+                    </div>
+                    @endif
                     <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 font-medium">Update</button>
                 </form>
             </div>

@@ -26,18 +26,14 @@
                 ]],
                 'office' => ['label' => 'Student / Internship', 'icon' => '<svg class="w-5 h-5 mr-3" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path d="M12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /><path stroke-linecap="round" stroke-linejoin="round" d="M12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /><path stroke-linecap="round" stroke-linejoin="round" d="M12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /><path stroke-linecap="round" stroke-linejoin="round" d="M12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /><path stroke-linecap="round" stroke-linejoin="round" d="M12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /><path stroke-linecap="round" stroke-linejoin="round" d="M12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>', 'children' => [
                     'registration' => ['label' => 'Registration', 'children' => [
+                        ['route' => 'batch.course', 'label' => 'Batch & Course'],
                         ['route' => 'student.registration', 'label' => 'New Student'],
                         ['route' => 'internship.registration', 'label' => 'New Intern'],
                     ]],
-                    ['route' => 'student.payment', 'label' => 'Student Payment'],
-                    'studentLists' => ['label' => 'Student Lists', 'children' => [
-                        ['route' => 'student.list.running', 'label' => 'Running Students'],
-                        ['route' => 'student.list.expire', 'label' => 'Ex-Students'],
-                    ]],
-                     'internLists' => ['label' => 'Intern Lists', 'children' => [
-                        ['route' => 'internship.list.running', 'label' => 'Running Interns'],
-                        ['route' => 'internship.list.expire', 'label' => 'Ex-Interns'],
-                    ]],
+                    ['route' => 'student.payment', 'label' => 'Students Payment'],
+                    ['route' => 'students.list', 'label' => 'Students List'],
+                    ['route' => 'internship.list', 'label' => 'Interns List'],
+                    
                 ]],
                 'staff' => ['label' => 'Staff Salary', 'icon' => '<svg class="w-5 h-5 mr-3" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-4.663M12 3.375c-3.418 0-6.162 2.759-6.162 6.188s2.744 6.188 6.162 6.188 6.162-2.759 6.162-6.188-2.744-6.188-6.162-6.188z" /></svg>', 'children' => [
                     ['route' => 'staff.summary', 'label' => 'Summary'],
@@ -46,6 +42,7 @@
                     ['route' => 'staff.report', 'label' => 'Report'],
                 ]],
                  'offline' => ['label' => 'Offline Cost', 'icon' => '<svg class="w-5 h-5 mr-3" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414-.336.75-.75.75h-.75m0-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75-.75v-.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" /></svg>', 'children' => [
+                    ['route' => 'offline.category', 'label' => 'Offline Category'],
                     ['route' => 'offline.cost.create', 'label' => 'Add Offline Cost'],
                     ['route' => 'offline.cost.report', 'label' => 'Monthly Report'],
                 ]],
@@ -65,7 +62,13 @@
                     ['route' => 'product.sell', 'label' => 'Sell Product'],
                     ['route' => 'product.loss', 'label' => 'Loss Product'],
                     ['route' => 'product.return', 'label' => 'Return Product'],
-                    ['route' => 'product.report', 'label' => 'Report'],
+                    'report' => ['label' => 'Report', 'children' => [
+                        ['route' => 'product.report', 'label' => 'All Report'],
+                        ['route' => 'product.stock.report', 'label' => 'Stock Report'],
+                        ['route' => 'product.sell.report', 'label' => 'Sell Report'],
+                        ['route' => 'product.loss.report', 'label' => 'Loss Report'],
+                        ['route' => 'product.return.report', 'label' => 'Return Report'],
+                    ]],
                 ]],
                  'company' => ['label' => 'Own Projects', 'icon' => '<svg class="w-5 h-5 mr-3" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5v12m-12 0h3.75" /></svg>', 'children' => [
                     ['route' => 'company.project.create', 'label' => 'Add Project'],
@@ -155,15 +158,14 @@
             routeName: '{{ request()->route()->getName() }}',
             menuMap: {
                 'credit.debit.summary': ['credit'], 'credit.debit.transaction': ['credit'], 'credit.debit.report': ['credit'],
-                'student.registration': ['office', 'registration'], 'internship.registration': ['office', 'registration'],
-                'student.payment': ['office'],
-                'student.list.running': ['office', 'studentLists'], 'student.list.expire': ['office', 'studentLists'],
-                'internship.list.running': ['office', 'internLists'], 'internship.list.expire': ['office', 'internLists'],
+                'batch.course': ['office', 'registration'],'student.registration': ['office', 'registration'], 'internship.registration': ['office', 'registration'],
+                'student.payment': ['office'], 'students.list': ['office'], 'internship.list': ['office'],
                 'staff.summary': ['staff'], 'staff.create': ['staff'], 'staff.salary.list': ['staff'], 'staff.report': ['staff'],
-                'offline.cost.create': ['offline'], 'offline.cost.report': ['offline'],
+                'offline.category': ['offline'], 'offline.cost.create': ['offline'], 'offline.cost.report': ['offline'],
                 'online.cost.create': ['online'], 'online.cost.report': ['online'],
                 'loan.create': ['loan'], 'installment.create': ['loan'], 'loan.report': ['loan'],
-                'product.summary': ['product'], 'product.category': ['product'], 'product.add': ['product'], 'product.sell': ['product'], 'product.loss': ['product'], 'product.return': ['product'], 'product.report': ['product'],
+                'product.summary': ['product'], 'product.category': ['product'], 'product.add': ['product'], 'product.sell': ['product'], 'product.loss': ['product'], 'product.return': ['product'], 
+                'product.report': ['product', 'report'], 'product.stock.report': ['product', 'report'], 'product.sell.report': ['product', 'report'], 'product.loss.report': ['product', 'report'], 'product.return.report': ['product', 'report'],
                 'company.project.create': ['company'], 'company.project.transaction.add': ['company'], 'company.project.list': ['company'],
                 'client.project.create': ['client'], 'client.project.transaction.add': ['client'], 'client.debit.add': ['client'], 'client.project.list': ['client'],
                 'target.summary': ['target'], 'revenue.report': ['target'], 'expense.report': ['target'],

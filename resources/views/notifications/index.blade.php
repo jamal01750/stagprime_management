@@ -19,7 +19,7 @@
         @if($red->count() > 0)
             <div class="space-y-4">
                 @foreach($red as $notification)
-                    @include('notifications._notification_item', ['notification' => $notification, 'borderColor' => 'border-red-500'])
+                    @include('notifications._notification_item', ['item' => $notification, 'borderColor' => 'border-red-500'])
                 @endforeach
             </div>
             <div class="mt-4">
@@ -36,7 +36,7 @@
         @if($blue->count() > 0)
             <div class="space-y-4">
                 @foreach($blue as $notification)
-                     @include('notifications._notification_item', ['notification' => $notification, 'borderColor' => 'border-blue-500'])
+                     @include('notifications._notification_item', ['item' => $notification, 'borderColor' => 'border-blue-500'])
                 @endforeach
             </div>
              <div class="mt-4">
@@ -53,7 +53,7 @@
         @if($green->count() > 0)
             <div class="space-y-4">
                 @foreach($green as $notification)
-                     @include('notifications._notification_item', ['notification' => $notification, 'borderColor' => 'border-green-500'])
+                     @include('notifications._notification_item', ['item' => $notification, 'borderColor' => 'border-green-500'])
                 @endforeach
             </div>
              <div class="mt-4">

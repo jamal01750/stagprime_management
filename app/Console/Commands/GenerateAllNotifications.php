@@ -45,8 +45,8 @@ class GenerateAllNotifications extends Command
         $dueDate = Carbon::parse($dueDate, 'Asia/Dhaka')->startOfDay();
 
         // Calculate the difference in days. A negative value means the due date is in the past.
-        $diff = $today->diffInDays($dueDate, false);
-        $daysLeft = $diff > 0 ? $diff + 1 : $diff;
+        $daysLeft = $today->diffInDays($dueDate, false);
+        // $daysLeft = $diff > 0 ? $diff + 1 : $diff;
 
         // If the due date is more than 10 days away, we don't need a notification.
         // Clear any existing active notification for this item and stop processing.

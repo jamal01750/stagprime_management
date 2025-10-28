@@ -28,4 +28,15 @@ class InternshipRegistration extends Model
         'active_status',
         'approve_status',
     ];
+
+    // Relationships
+    public function batch()
+    {
+        return $this->belongsTo(Batch::class);
+    }
+
+    public function course()
+    {
+        return $this->belongsTo(Course::class);
+    }
 }

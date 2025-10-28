@@ -38,7 +38,7 @@
 
                     <div>
                         <label class="block text-sm font-medium">Name</label>
-                        <input type="text" name="internee_name" value="{{ old('student_name', $student->student_name) }}" class="mt-1 block w-full border-2 border-blue-600 rounded pl-2" required>
+                        <input type="text" name="internee_name" value="{{ old('internee_name', $student->internee_name) }}" class="mt-1 block w-full border-2 border-blue-600 rounded pl-2" required>
                     </div>
 
                     <div>
@@ -108,14 +108,7 @@
                         <textarea name="description" rows="3" class="mt-1 block w-full border-2 border-blue-600 rounded">{{ old('description', $student->description) }}</textarea>
                     </div>
 
-                    <div>
-                        <label class="block text-sm font-medium">Payment Status</label>
-                        <select name="payment_status" class="mt-1 block w-full border-2 border-blue-600 rounded">
-                            <option value="Full paid" {{ $student->payment_status == 'Full paid' ? 'selected' : '' }}>Full paid</option>
-                            <option value="Partial" {{ $student->payment_status == 'Partial' ? 'selected' : '' }}>Partial</option>
-                        </select>
-                    </div>
-
+                    @if(auth()->user()->role === 'admin')
                     <div>
                         <label class="block text-sm font-medium">Active Status</label>
                         <select name="active_status" class="mt-1 block w-full border-2 border-blue-600 rounded">
@@ -123,7 +116,15 @@
                             <option value="Expired" {{ $student->active_status == 'Expired' ? 'selected' : '' }}>Expired</option>
                         </select>
                     </div>
-
+                    
+                    <div>
+                        <label class="block text-sm font-medium">Approve Status</label>
+                        <select name="approve_status" class="mt-1 block w-full border-2 border-blue-600 rounded">
+                            <option value="approved" {{ $student->approve_status=='approved'?'selected':'' }}>Approved</option>
+                            <option value="pending" {{ $student->approve_status=='pending'?'selected':'' }}>Pending</option>
+                        </select>
+                    </div>
+                    @endif
                     <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 font-medium">Update</button>
                 </form>
             </div>

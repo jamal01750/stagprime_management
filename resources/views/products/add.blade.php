@@ -50,10 +50,14 @@
 
     {{-- Products List --}}
     <div class="mt-6">
-        <h2 class="text-lg font-semibold mb-4">Pending Products</h2>
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-lg font-semibold">Pending Products</h2>
+            <a href="{{ route('product.download.pdf') }}" target="_blank" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 font-medium">Download PDF</a>
+        </div>
         <table class="min-w-full border border-gray-200">
             <thead class="bg-gray-100">
                 <tr>
+                    <th class="px-4 py-2 border">Sl.</th>
                     <th class="px-4 py-2 border">Category</th>
                     <th class="px-4 py-2 border">Quantity</th>
                     <th class="px-4 py-2 border">Amount</th>
@@ -61,8 +65,9 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach($products as $product)
+                @foreach($products as $key => $product)
                 <tr>
+                    <td class="px-4 py-2 border">{{$key+1}}</td>
                     <td class="px-4 py-2 border">{{ $product->category->name }}</td>
                     <td class="px-4 py-2 border text-center">{{ $product->quantity }}</td>
                     <td class="px-4 py-2 border text-center">{{ $product->amount_type == 'taka' ? '৳' : '$' }}{{ number_format($product->amount, 2) }}</td>
@@ -94,8 +99,20 @@
                     </td>
                 </tr>
                 @endforeach
+                <tr>
+                    <td class="px-4 py-2 border font-bold"></td>
+                    <td class="px-4 py-2 border font-bold">Total</td>
+                    <td class="px-4 py-2 border text-center font-bold">{{ $totalQuantity }}</td>
+                    <td class="px-4 py-2 border text-center font-bold">
+                        ৳ {{ number_format($totalAmount, 2) }}
+                    </td>
+                    <td class="px-4 py-2 border"></td>
+                </tr>
             </tbody>
         </table>
+        <div class="mt-4">
+            {{ $products->links() }}
+        </div>
     </div>
 
 </div>

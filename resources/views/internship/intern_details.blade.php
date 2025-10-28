@@ -12,7 +12,7 @@
             <div class="flex-shrink-0">
                 @if($student->image)
                     <img src="{{ asset('storage/' . $student->image) }}" 
-                         alt="{{ $student->student_name }}" 
+                         alt="{{ $student->internee_name }}" 
                          class="h-32 w-32 object-cover rounded-full border-4 border-white shadow">
                 @else
                     <div class="h-32 w-32 flex items-center justify-center bg-gray-200 text-gray-500 rounded-full border-4 border-white shadow">
@@ -55,23 +55,29 @@
                 <h3 class="text-lg font-semibold mb-2">Payment Info</h3>
                 <p><span class="font-semibold">Pay/Contract Amount:</span> {{ number_format($student->pay_amount, 2) }}</p>
                 <p><span class="font-semibold">Total Paid:</span> {{ number_format($student->total_paid, 2) }}</p>
-                <p><span class="font-semibold">Payment Status:</span> 
+                <!-- <p><span class="font-semibold">Payment Status:</span> 
                     <span class="px-2 py-1 rounded text-white 
                         {{ $student->payment_status === 'Full paid' ? 'bg-green-600' : 'bg-yellow-500' }}">
                         {{ $student->payment_status }}
                     </span>
-                </p>
-                <p><span class="font-semibold">Description:</span> {{ $student->description ?? '-' }}</p>
+                </p> -->
+                <p><span class="font-semibold">Comment:</span> {{ $student->description ?? '-' }}</p>
             </div>
 
         </div>
 
         {{-- Actions --}}
         <div class="p-6 border-t flex justify-end space-x-3">
+            <a href="{{ route('internship.download.pdf', $student->id) }}" target="_blank" 
+                class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600">
+                Download PDF
+            </a>
+            @if(auth()->user()->role === 'admin')
             <a href="{{ route('internship.edit', $student->id) }}" 
                class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
                Edit/Update
             </a>
+            @endif
         </div>
     </div>
 </div>
