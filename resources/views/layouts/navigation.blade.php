@@ -63,7 +63,8 @@
                     ['route' => 'product.loss', 'label' => 'Loss Product'],
                     ['route' => 'product.return', 'label' => 'Return Product'],
                     'report' => ['label' => 'Report', 'children' => [
-                        ['route' => 'product.report', 'label' => 'All Report'],
+                        ['route' => 'product.category.report', 'label' => 'All Category'],
+                        ['route' => 'product.single.category.report', 'label' => 'Single Category'],
                         ['route' => 'product.stock.report', 'label' => 'Stock Report'],
                         ['route' => 'product.sell.report', 'label' => 'Sell Report'],
                         ['route' => 'product.loss.report', 'label' => 'Loss Report'],
@@ -165,7 +166,7 @@
                 'online.cost.create': ['online'], 'online.cost.report': ['online'],
                 'loan.create': ['loan'], 'installment.create': ['loan'], 'loan.report': ['loan'],
                 'product.summary': ['product'], 'product.category': ['product'], 'product.add': ['product'], 'product.sell': ['product'], 'product.loss': ['product'], 'product.return': ['product'], 
-                'product.report': ['product', 'report'], 'product.stock.report': ['product', 'report'], 'product.sell.report': ['product', 'report'], 'product.loss.report': ['product', 'report'], 'product.return.report': ['product', 'report'],
+                'product.category.report': ['product', 'report'], 'product.single.category.report': ['product', 'report'], 'product.stock.report': ['product', 'report'], 'product.sell.report': ['product', 'report'], 'product.loss.report': ['product', 'report'], 'product.return.report': ['product', 'report'],
                 'company.project.create': ['company'], 'company.project.transaction.add': ['company'], 'company.project.list': ['company'],
                 'client.project.create': ['client'], 'client.project.transaction.add': ['client'], 'client.debit.add': ['client'], 'client.project.list': ['client'],
                 'target.summary': ['target'], 'revenue.report': ['target'], 'expense.report': ['target'],

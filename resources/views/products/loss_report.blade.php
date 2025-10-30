@@ -102,16 +102,21 @@
                             <td class="px-3 py-2">
                                 <div class="flex gap-2">
                                 @if(auth()->user()->role === 'admin')
-                                    {{-- Edit --}}
-                                    <button type="button" onclick="openEditLoss({{ $p->id }})" class="text-blue-600 hover:underline">Edit</button>
-                                    {{-- Delete --}}
-                                    <form action="{{ route('product.loss.destroy',$p->id) }}" method="POST" class="inline-block">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" onclick="return confirm('Delete this sale?')" class="text-red-600 hover:underline">
-                                            Delete
-                                        </button>
-                                    </form>
+                                    @if($p->status === 'pending')
+                                        {{-- Edit --}}
+                                        <button type="button" onclick="openEditLoss({{ $p->id }})" class="text-blue-600 hover:underline">Edit</button>
+                                        {{-- Delete --}}
+                                        <form action="{{ route('product.loss.destroy',$p->id) }}" method="POST" class="inline-block">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" onclick="return confirm('Delete this sale?')" class="text-red-600 hover:underline">
+                                                Delete
+                                            </button>
+                                        </form>
+                                    @else
+                                        <button type="button" class="text-gray-400 cursor-not-allowed">Edit</button>
+                                        <button type="button" class="text-gray-400 cursor-not-allowed">Delete</button>
+                                    @endif
                                 @endif
                                 </div>
                             </td>

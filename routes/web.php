@@ -402,8 +402,12 @@ Route::middleware('auth')->group(function () {
 
 
     // Product Report
-        Route::get('/product/report', [ProductController::class, 'report'])
-        ->name('product.report');
+        Route::get('/product/report', [ProductController::class, 'allCategoryReport'])
+        ->name('product.category.report');
+        Route::get('/product/report/pdf', [ProductController::class, 'downloadAllCategoryPdf'])
+        ->name('product.category.report.pdf');
+        Route::get('/product/single-category/report', [ProductController::class, 'singleCategoryReport'])
+        ->name('product.single.category.report');
         // Product Stock Report
         Route::get('/product/stock/report', [ProductController::class, 'stockReport'])
         ->name('product.stock.report');

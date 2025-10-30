@@ -492,7 +492,7 @@ class ProductController extends Controller
 
 
 // Product Report
-    public function report(Request $request)
+    public function Report(Request $request)
     {
         $filterType = $request->input('filter_type', 'month'); // day|month|year|range
         $date  = $request->input('date');
@@ -760,11 +760,27 @@ class ProductController extends Controller
     public function updateStockStatus(Request $request)
     {
         $product = Product::find($request->id);
-        if ($product) {
+        if ($product && $product->status !== $request->status) {
             $product->status = $request->status;
             $product->save();
+
+            $category = ProductCategory::findOrFail($product->product_category_id);
+            if ($product->status === 'approved') {
+                // increment category stock after approval
+                $category->increment('total_quantity', $product->quantity);
+                $category->increment('quantity', $product->quantity);
+            } elseif ($product->status === 'pending') {
+                // Decrement the stock if status is set to pending
+                $category->decrement('total_quantity', $product->quantity);
+                $category->decrement('quantity', $product->quantity);
+            }
+            
+            
             return response()->json(['message' => 'Status updated successfully!']);
+        }else if ($product && $product->status === $request->status) {
+            return response()->json(['message' => 'Product already has this status!']);
         }
+
         return response()->json(['message' => 'Product not found!'], 404);
     }
 
@@ -855,11 +871,33 @@ class ProductController extends Controller
     public function updateSellStatus(Request $request)
     {
         $product = ProductSale::find($request->id);
-        if ($product) {
-            $product->status = $request->status;
-            $product->save();
+        if ($product && $product->status !== $request->status) {
+            $category = ProductCategory::findOrFail($product->product_category_id);
+            if ($request->status === 'paid') {
+                // check stock before approving
+                if ($category->quantity < $product->quantity) {
+                    return response()->json(['message' => 'Not enough stock to approve this sale.']);
+                }
+                $product->update([
+                    'status'    => 'paid',
+                    'paid_date' => now('Asia/Dhaka')->toDateString(),
+                ]);
+                // reduce stock
+                $category->decrement('quantity', $product->quantity);
+                
+            } elseif ($request->status === 'unpaid') {
+                $product->update([
+                    'status'    => 'unpaid',
+                    'paid_date' => null,
+                ]);
+                $category->increment('quantity', $product->quantity);
+                
+            }
             return response()->json(['message' => 'Status updated successfully!']);
+        }else if ($product && $product->status === $request->status) {
+            return response()->json(['message' => 'Product already has this status!']);
         }
+        
         return response()->json(['message' => 'Product not found!'], 404);
     }
 
@@ -948,11 +986,31 @@ class ProductController extends Controller
     public function updateLossStatus(Request $request)
     {
         $product = ProductLoss::find($request->id);
-        if ($product) {
-            $product->status = $request->status;
-            $product->save();
+        if ($product && $product->status !== $request->status) {
+            $category = ProductCategory::findOrFail($product->product_category_id);
+            if ($request->status === 'approved') {
+                // check stock before approving
+                if ($category->quantity < $product->quantity) {
+                    return response()->json(['message' => 'Not enough stock to approve this Loss.']);
+                }
+                $product->update([
+                    'status'    => 'approved',
+                ]);
+                // reduce stock
+                $category->decrement('quantity', $product->quantity);
+                
+            } elseif ($request->status === 'pending') {
+                $product->update([
+                    'status'    => 'pending',
+                ]);
+                $category->increment('quantity', $product->quantity);
+                
+            }
             return response()->json(['message' => 'Status updated successfully!']);
+        }else if ($product && $product->status === $request->status) {
+            return response()->json(['message' => 'Product already has this status!']);
         }
+        
         return response()->json(['message' => 'Product not found!'], 404);
     }
 
@@ -1041,11 +1099,27 @@ class ProductController extends Controller
     public function updateReturnStatus(Request $request)
     {
         $product = ProductReturn::find($request->id);
-        if ($product) {
-            $product->status = $request->status;
-            $product->save();
+        if ($product && $product->status !== $request->status) {
+            $category = ProductCategory::findOrFail($product->product_category_id);
+            if ($request->status === 'approved') {
+                $product->update([
+                    'status'    => 'approved',
+                ]);
+                
+                $category->increment('quantity', $product->quantity);
+                
+            } elseif ($request->status === 'pending') {
+                $product->update([
+                    'status'    => 'pending',
+                ]);
+                $category->decrement('quantity', $product->quantity);
+                
+            }
             return response()->json(['message' => 'Status updated successfully!']);
+        }else if ($product && $product->status === $request->status) {
+            return response()->json(['message' => 'Product already has this status!']);
         }
+        
         return response()->json(['message' => 'Product not found!'], 404);
     }
 
@@ -1085,6 +1159,164 @@ class ProductController extends Controller
         return $pdf->stream('pending_returns.pdf');
     }
 
+    // 🟩 1. ALL CATEGORY REPORT
+    public function allCategoryReport(Request $request)
+    {
+        $startDate = $request->input('start_date');
+        $endDate   = $request->input('end_date');
+        $selectedIds = $request->input('categories', []); // array of checked category IDs
+        $exchangeRate = session('result', 1); // Tk conversion rate
+
+        $start = $startDate ? Carbon::parse($startDate)->startOfDay() : now()->startOfMonth();
+        $end   = $endDate ? Carbon::parse($endDate)->endOfDay() : now()->endOfMonth();
+
+        $categories = ProductCategory::with('products')->get()->map(function ($cat) use ($start, $end, $exchangeRate) {
+            $stocks = Product::where('product_category_id', $cat->id)
+                ->where('status', 'approved')->whereBetween('updated_at', [$start, $end])->get();
+
+            $sales = ProductSale::where('product_category_id', $cat->id)
+                ->where('status', 'paid')->whereBetween('paid_date', [$start, $end])->get();
+
+            $losses = ProductLoss::where('product_category_id', $cat->id)
+                ->where('status', 'approved')->whereBetween('updated_at', [$start, $end])->get();
+
+            $returns = ProductReturn::where('product_category_id', $cat->id)
+                ->where('status', 'approved')->whereBetween('updated_at', [$start, $end])->get();
+
+            $saleQty = $sales->sum('quantity') - $returns->sum('quantity');
+            $currentStock = $stocks->sum('quantity') - $sales->sum('quantity') - $losses->sum('quantity') + $returns->sum('quantity');
+
+            $saleAmount = 0;
+            foreach ($sales as $s) {
+                $saleAmount += $s->amount_type === 'dollar' ? $s->amount * $exchangeRate : $s->amount;
+            }
+            foreach ($returns as $r) {
+                $saleAmount -= $r->amount_type === 'dollar' ? $r->amount * $exchangeRate : $r->amount;
+            }
+
+            $lossAmount = $losses->sum(fn($l) => $l->amount_type === 'dollar' ? $l->loss_amount * $exchangeRate : $l->loss_amount);
+            $returnAmount = $returns->sum(fn($r) => $r->amount_type === 'dollar' ? $r->amount * $exchangeRate : $r->amount);
+
+            return [
+                'id' => $cat->id,
+                'name' => $cat->name,
+                'current_stock' => $currentStock,
+                'total_stock' => $stocks->sum('quantity'),
+                'sell_qty' => $saleQty,
+                'loss_qty' => $losses->sum('quantity'),
+                'return_qty' => $returns->sum('quantity'),
+                'revenue' => $saleAmount,
+                'loss' => $lossAmount,
+                'return' => $returnAmount,
+            ];
+        });
+
+        // Only include checked categories if user selected
+        if (!empty($selectedIds)) {
+            $categories = $categories->whereIn('id', $selectedIds)->values();
+        }
+
+        $totals = [
+            'total_stock'   => $categories->sum('total_stock'),
+            'current_stock' => $categories->sum('current_stock'),
+            'sell_qty'      => $categories->sum('sell_qty'),
+            'loss_qty'      => $categories->sum('loss_qty'),
+            'return_qty'    => $categories->sum('return_qty'),
+            'revenue'       => $categories->sum('revenue'),
+            'loss'          => $categories->sum('loss'),
+            'return'        => $categories->sum('return'),
+        ];
+
+        return view('products.report_all', compact('categories', 'totals', 'startDate', 'endDate', 'selectedIds'));
+    }
+
+    // 🟩 Download PDF for All
+    public function downloadAllCategoryPdf(Request $request)
+    {
+        $categories = collect(json_decode($request->input('categories'), true));
+        $totals = json_decode($request->input('totals'), true);
+        $pdf = PDF::loadView('pdf.report_all_pdf', compact('categories', 'totals'));
+        return $pdf->download('all_category_report.pdf');
+    }
+
+    // 🟦 2. SINGLE CATEGORY REPORT
+    public function singleCategoryReport(Request $request)
+    {
+        $startDate = $request->input('start_date');
+        $endDate   = $request->input('end_date');
+        $categoryId = $request->input('category_id');
+        $exchangeRate = session('result', 1);
+
+        $categories = ProductCategory::all();
+
+        if (!$categoryId) {
+            $categoryId = $categories->first()?->id;
+        }
+
+        $start = $startDate ? Carbon::parse($startDate)->startOfDay() : now()->startOfMonth();
+        $end   = $endDate ? Carbon::parse($endDate)->endOfDay() : now()->endOfMonth();
+
+        $category = ProductCategory::findOrFail($categoryId);
+        $sales = ProductSale::where('product_category_id', $categoryId)->where('status', 'paid')->whereBetween('paid_date', [$start, $end])->get();
+        $losses = ProductLoss::where('product_category_id', $categoryId)->where('status', 'approved')->whereBetween('updated_at', [$start, $end])->get();
+        $returns = ProductReturn::where('product_category_id', $categoryId)->where('status', 'approved')->whereBetween('updated_at', [$start, $end])->get();
+        $stocks = Product::where('product_category_id', $categoryId)->where('status', 'approved')->whereBetween('updated_at', [$start, $end])->get();
+
+        $details = collect();
+        foreach ($sales as $s) {
+            $details->push([
+                'type' => 'Sale',
+                'date' => $s->paid_date,
+                'qty' => $s->quantity,
+                'amount' => $s->amount_type === 'dollar' ? $s->amount * $exchangeRate : $s->amount,
+                'desc' => $s->description,
+            ]);
+        }
+        foreach ($losses as $l) {
+            $details->push([
+                'type' => 'Loss',
+                'date' => $l->updated_at,
+                'qty' => $l->quantity,
+                'amount' => $l->amount_type === 'dollar' ? $l->loss_amount * $exchangeRate : $l->loss_amount,
+                'desc' => $l->description,
+            ]);
+        }
+        foreach ($returns as $r) {
+            $details->push([
+                'type' => 'Return',
+                'date' => $r->updated_at,
+                'qty' => $r->quantity,
+                'amount' => $r->amount_type === 'dollar' ? $r->amount * $exchangeRate : $r->amount,
+                'desc' => $r->description,
+            ]);
+        }
+        foreach ($stocks as $s) {
+            $details->push([
+                'type' => 'Stock',
+                'date' => $s->updated_at,
+                'qty' => $s->quantity,
+                'amount' => $s->amount_type === 'dollar' ? $s->amount * $exchangeRate : $s->amount,
+                'desc' => $s->description,
+            ]);
+        }
+
+        $details = $details->sortByDesc('date');
+
+        $totals = [
+            'qty' => $details->sum('qty'),
+            'amount' => $details->sum('amount'),
+        ];
+
+        return view('products.report_single', compact('categories', 'categoryId', 'details', 'totals', 'startDate', 'endDate'));
+    }
+
+    public function downloadSingleCategoryPdf(Request $request)
+    {
+        $details = collect(json_decode($request->input('details'), true));
+        $totals = json_decode($request->input('totals'), true);
+        $pdf = PDF::loadView('pdf.report_single_pdf', compact('details', 'totals'));
+        return $pdf->download('single_category_report.pdf');
+    }
 
 }
 
