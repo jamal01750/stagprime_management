@@ -408,6 +408,8 @@ Route::middleware('auth')->group(function () {
         ->name('product.category.report.pdf');
         Route::get('/product/single-category/report', [ProductController::class, 'singleCategoryReport'])
         ->name('product.single.category.report');
+        Route::get('/product/single-category/pdf', [ProductController::class, 'downloadSingleCategoryPdf'])
+        ->name('product.single.category.report.pdf');
         // Product Stock Report
         Route::get('/product/stock/report', [ProductController::class, 'stockReport'])
         ->name('product.stock.report');

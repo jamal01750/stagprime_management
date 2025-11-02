@@ -1164,58 +1164,61 @@ class ProductController extends Controller
     {
         $startDate = $request->input('start_date');
         $endDate   = $request->input('end_date');
-        $selectedIds = $request->input('categories', []); // array of checked category IDs
-        $exchangeRate = session('result', 1); // Tk conversion rate
+        $exchangeRate = session('result', 1);
 
-        $start = $startDate ? Carbon::parse($startDate)->startOfDay() : now()->startOfMonth();
-        $end   = $endDate ? Carbon::parse($endDate)->endOfDay() : now()->endOfMonth();
+        $start = $startDate ? Carbon::parse($startDate)->startOfDay() : null;
+        $end   = $endDate ? Carbon::parse($endDate)->endOfDay() : null;
 
-        $categories = ProductCategory::with('products')->get()->map(function ($cat) use ($start, $end, $exchangeRate) {
-            $stocks = Product::where('product_category_id', $cat->id)
-                ->where('status', 'approved')->whereBetween('updated_at', [$start, $end])->get();
+        // Base query for ALL categories
+        $categories = ProductCategory::query()
+            ->with(['products'])
+            ->paginate(10); // ✅ pagination added (10 per page)
 
-            $sales = ProductSale::where('product_category_id', $cat->id)
-                ->where('status', 'paid')->whereBetween('paid_date', [$start, $end])->get();
+        // Convert each Category to stat array
+        $categories->getCollection()->transform(function ($cat) use ($start, $end, $exchangeRate) {
+            $stocksQuery = Product::where('product_category_id', $cat->id)->where('status', 'approved');
+            $salesQuery  = ProductSale::where('product_category_id', $cat->id)->where('status', 'paid');
+            $lossQuery   = ProductLoss::where('product_category_id', $cat->id)->where('status', 'approved');
+            $returnQuery = ProductReturn::where('product_category_id', $cat->id)->where('status', 'approved');
 
-            $losses = ProductLoss::where('product_category_id', $cat->id)
-                ->where('status', 'approved')->whereBetween('updated_at', [$start, $end])->get();
-
-            $returns = ProductReturn::where('product_category_id', $cat->id)
-                ->where('status', 'approved')->whereBetween('updated_at', [$start, $end])->get();
-
-            $saleQty = $sales->sum('quantity') - $returns->sum('quantity');
-            $currentStock = $stocks->sum('quantity') - $sales->sum('quantity') - $losses->sum('quantity') + $returns->sum('quantity');
-
-            $saleAmount = 0;
-            foreach ($sales as $s) {
-                $saleAmount += $s->amount_type === 'dollar' ? $s->amount * $exchangeRate : $s->amount;
-            }
-            foreach ($returns as $r) {
-                $saleAmount -= $r->amount_type === 'dollar' ? $r->amount * $exchangeRate : $r->amount;
+            // Apply filter only when date exists
+            if ($start && $end) {
+                $stocksQuery->whereBetween('updated_at', [$start, $end]);
+                $salesQuery->whereBetween('paid_date', [$start, $end]);
+                $lossQuery->whereBetween('updated_at', [$start, $end]);
+                $returnQuery->whereBetween('updated_at', [$start, $end]);
             }
 
-            $lossAmount = $losses->sum(fn($l) => $l->amount_type === 'dollar' ? $l->loss_amount * $exchangeRate : $l->loss_amount);
-            $returnAmount = $returns->sum(fn($r) => $r->amount_type === 'dollar' ? $r->amount * $exchangeRate : $r->amount);
+            $stocks = $stocksQuery->get();
+            $sales  = $salesQuery->get();
+            $losses = $lossQuery->get();
+            $returns = $returnQuery->get();
+
+            $saleAmount = $sales->sum(function ($s) use ($exchangeRate) {
+                return $s->amount_type === 'dollar' ? $s->amount * $exchangeRate : $s->amount;
+            });
+            $lossAmount = $losses->sum(function ($l) use ($exchangeRate) {
+                return $l->amount_type === 'dollar' ? $l->loss_amount * $exchangeRate : $l->loss_amount;
+            });
+            $returnAmount = $returns->sum(function ($r) use ($exchangeRate) {
+                return $r->amount_type === 'dollar' ? $r->amount * $exchangeRate : $r->amount;
+            });
 
             return [
-                'id' => $cat->id,
-                'name' => $cat->name,
-                'current_stock' => $currentStock,
-                'total_stock' => $stocks->sum('quantity'),
-                'sell_qty' => $saleQty,
-                'loss_qty' => $losses->sum('quantity'),
-                'return_qty' => $returns->sum('quantity'),
-                'revenue' => $saleAmount,
-                'loss' => $lossAmount,
-                'return' => $returnAmount,
+                'id'            => $cat->id,
+                'name'          => $cat->name,
+                'total_stock'   => $stocks->sum('quantity'),
+                'current_stock' => $stocks->sum('quantity') - $sales->sum('quantity') - $losses->sum('quantity') + $returns->sum('quantity'),
+                'sell_qty'      => $sales->sum('quantity'),
+                'loss_qty'      => $losses->sum('quantity'),
+                'return_qty'    => $returns->sum('quantity'),
+                'revenue'       => $saleAmount,
+                'loss'          => $lossAmount,
+                'return'        => $returnAmount,
             ];
         });
 
-        // Only include checked categories if user selected
-        if (!empty($selectedIds)) {
-            $categories = $categories->whereIn('id', $selectedIds)->values();
-        }
-
+        // Totals only for paginated data on current page:
         $totals = [
             'total_stock'   => $categories->sum('total_stock'),
             'current_stock' => $categories->sum('current_stock'),
@@ -1227,17 +1230,79 @@ class ProductController extends Controller
             'return'        => $categories->sum('return'),
         ];
 
-        return view('products.report_all', compact('categories', 'totals', 'startDate', 'endDate', 'selectedIds'));
+        return view('products.report', compact('categories', 'totals', 'startDate', 'endDate'));
     }
 
-    // 🟩 Download PDF for All
     public function downloadAllCategoryPdf(Request $request)
     {
-        $categories = collect(json_decode($request->input('categories'), true));
-        $totals = json_decode($request->input('totals'), true);
-        $pdf = PDF::loadView('pdf.report_all_pdf', compact('categories', 'totals'));
-        return $pdf->download('all_category_report.pdf');
+        $startDate = $request->input('start_date');
+        $endDate   = $request->input('end_date');
+        $selectedIds = $request->input('categories', []); // Checkbox selections
+        $exchangeRate = session('result', 1);
+
+        $start = $startDate ? Carbon::parse($startDate)->startOfDay() : null;
+        $end   = $endDate ? Carbon::parse($endDate)->endOfDay() : null;
+
+        // Fetch all categories (no pagination for PDF)
+        $categories = ProductCategory::all()->map(function ($cat) use ($start, $end, $exchangeRate) {
+            $stocks = Product::where('product_category_id', $cat->id)->where('status', 'approved')->when($start && $end, fn($q) => $q->whereBetween('updated_at', [$start, $end]))->get();
+            $sales  = ProductSale::where('product_category_id', $cat->id)->where('status', 'paid')->when($start && $end, fn($q) => $q->whereBetween('paid_date', [$start, $end]))->get();
+            $losses = ProductLoss::where('product_category_id', $cat->id)->where('status', 'approved')->when($start && $end, fn($q) => $q->whereBetween('updated_at', [$start, $end]))->get();
+            $returns = ProductReturn::where('product_category_id', $cat->id)->where('status', 'approved')->when($start && $end, fn($q) => $q->whereBetween('updated_at', [$start, $end]))->get();
+
+        
+            $saleAmount = $sales->sum(function ($s) use ($exchangeRate) {
+                return $s->amount_type === 'dollar' ? $s->amount * $exchangeRate : $s->amount;
+            });
+            $lossAmount = $losses->sum(function ($l) use ($exchangeRate) {
+                return $l->amount_type === 'dollar' ? $l->loss_amount * $exchangeRate : $l->loss_amount;
+            });
+            $returnAmount = $returns->sum(function ($r) use ($exchangeRate) {
+                return $r->amount_type === 'dollar' ? $r->amount * $exchangeRate : $r->amount;
+            });
+
+            return [
+                'id'            => $cat->id,
+                'name'          => $cat->name,
+                'total_stock'   => $stocks->sum('quantity'),
+                'current_stock' => $stocks->sum('quantity') - $sales->sum('quantity') - $losses->sum('quantity') + $returns->sum('quantity'),
+                'sell_qty'      => $sales->sum('quantity'),
+                'loss_qty'      => $losses->sum('quantity'),
+                'return_qty'    => $returns->sum('quantity'),
+                'revenue'       => $saleAmount,
+                'loss'          => $lossAmount,
+                'return'        => $returnAmount,
+            ];
+        });
+
+        // ✅ Filter only selected categories if checkboxes used
+        if (!empty($selectedIds)) {
+            $categories = $categories->whereIn('id', $selectedIds)->values();
+        }
+
+        // ✅ Totals
+        $totals = [
+            'total_stock'   => $categories->sum('total_stock'),
+            'current_stock' => $categories->sum('current_stock'),
+            'sell_qty'      => $categories->sum('sell_qty'),
+            'loss_qty'      => $categories->sum('loss_qty'),
+            'return_qty'    => $categories->sum('return_qty'),
+            'revenue'       => $categories->sum('revenue'),
+            'loss'          => $categories->sum('loss'),
+            'return'        => $categories->sum('return'),
+        ];
+
+
+        $pdf = PDF::loadView('pdf.all_category_report', [
+            'categories' => $categories,
+            'totals' => $totals,
+            'startDate' => $startDate,
+            'endDate' => $endDate,
+        ]);
+
+        return $pdf->stream('all-category-report.pdf');
     }
+
 
     // 🟦 2. SINGLE CATEGORY REPORT
     public function singleCategoryReport(Request $request)
@@ -1307,14 +1372,14 @@ class ProductController extends Controller
             'amount' => $details->sum('amount'),
         ];
 
-        return view('products.report_single', compact('categories', 'categoryId', 'details', 'totals', 'startDate', 'endDate'));
+        return view('products.single_category_report', compact('categories', 'categoryId', 'details', 'totals', 'startDate', 'endDate'));
     }
 
     public function downloadSingleCategoryPdf(Request $request)
     {
         $details = collect(json_decode($request->input('details'), true));
         $totals = json_decode($request->input('totals'), true);
-        $pdf = PDF::loadView('pdf.report_single_pdf', compact('details', 'totals'));
+        $pdf = PDF::loadView('pdf.single_category_report', compact('details', 'totals'));
         return $pdf->download('single_category_report.pdf');
     }
 
